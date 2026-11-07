@@ -79,6 +79,7 @@ js/walkthroughs/tours*.js  the scenarios
 scripts/build.mjs          bundles everything into dist/index.html
 scripts/check.mjs          syntax check and render smoke test of every view
 tests/walkthroughs.mjs     runs every walkthrough end to end in a headless browser
+tests/happy-path.mjs       end-to-end QA pass across modules, refresh and reset
 .github/workflows/pages.yml  builds and deploys to GitHub Pages on every push to main
 ```
 
@@ -91,7 +92,18 @@ npm install          # installs Playwright
 npm run check        # syntax plus every view and report tab
 npm test             # every walkthrough, start to finish
 npm test -- swarm    # one walkthrough by id
+npm run test:qa      # end-to-end pass across modules (see below)
 ```
+
+`npm run test:qa` drives the app through the UI the way a user would and checks the links between modules:
+
+1. A critical alert raises an incident with the form already filled in, and the incident is linked to the alert and its configuration item.
+2. A problem raised from that incident reaches **Known error** and appears in the KEDB at once. The next matching call shows exactly one known error badge, and a knowledge article can be created from it.
+3. A change for the fix goes through CAB votes. Its configuration item shows **Maintenance window active** only while the change is implementing, and a successful outcome resolves the problem.
+4. A very long incident summary stays on one line, the desk table fits a 1360 px window, and P1 SLA countdowns tick and change colour.
+5. Approving a change and logging an improvement survive a refresh, the open record reopens, and **Reset demo data** clears everything.
+
+Run it against the built file with `PAGE=dist/index.html npm run test:qa`, or against a deployed copy with `npm run test:qa -- https://jkullappagari.github.io/ITSM-demo/`. Set `SHOTS=folder` to save screenshots of each stage.
 
 ## Publishing
 
