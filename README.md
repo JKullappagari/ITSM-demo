@@ -2,6 +2,8 @@
 
 **Live demo: https://jkullappagari.github.io/ITSM-demo/**
 
+**Audio guide: https://jkullappagari.github.io/ITSM-demo/meridian-audio-guide.mp3**: a 22-minute spoken tour of every screen, to listen to before you open the tool. The chapter times are in [audio-guide/chapters.md](audio-guide/chapters.md) and the narration text is in [audio-guide/script.md](audio-guide/script.md).
+
 An interactive demonstration of IT service management (ITSM) as it should work. It shows how incidents, problems, changes, requests, releases, knowledge, configuration and improvement fit together, how management reports come out of that work, and lets anyone practise real scenarios through guided walkthroughs.
 
 Everything runs in the browser. There is no server and no database: sample data is generated relative to today, and anything a viewer changes is kept in that viewer's browser only. **Reset demo data** in the sidebar starts clean. Refreshing the page keeps your records, the record you had open and any walkthrough in progress.
@@ -76,7 +78,8 @@ js/simulation.js           activity log, ripple effects between modules, live SL
 js/sim-extras.js           maintenance windows, sidebar badges, background alerts, process stage hover
 js/walkthroughs/engine.js  coach panel, highlight ring, auto-advance, "Do it for me"
 js/walkthroughs/tours*.js  the scenarios
-scripts/build.mjs          bundles everything into dist/index.html
+scripts/build.mjs          bundles everything into dist/index.html and copies the audio guide next to it
+audio-guide/               spoken guide (MP3), its narration script and chapter times
 scripts/check.mjs          syntax check and render smoke test of every view
 tests/walkthroughs.mjs     runs every walkthrough end to end in a headless browser
 tests/happy-path.mjs       end-to-end QA pass across modules, refresh and reset
