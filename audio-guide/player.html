@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meridian Service Desk: audio guide</title>
+<style>
+  :root{--bg:#f7f7f5;--card:#fff;--ink:#1d2330;--muted:#5f6675;--line:#e3e4e8;--accent:#2f5fd0;--accent-soft:#e8eefc}
+  @media (prefers-color-scheme:dark){:root{--bg:#14161b;--card:#1d2027;--ink:#e8eaef;--muted:#9aa1ae;--line:#2c3039;--accent:#7ea2ff;--accent-soft:#232c44}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{max-width:640px;margin:0 auto;padding:32px 20px 48px}
+  .mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px;background:var(--accent);vertical-align:middle;margin-right:10px}
+  h1{font-size:1.45rem;margin:0 0 6px;display:flex;align-items:center}
+  .sub{color:var(--muted);margin:0 0 24px}
+  .player{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .now{font-size:.85rem;color:var(--muted);margin:0 0 4px}
+  .now b{display:block;color:var(--ink);font-size:1.05rem;margin-top:2px}
+  audio{width:100%;margin:14px 0 10px}
+  .speed{display:flex;gap:6px;align-items:center;font-size:.85rem;color:var(--muted)}
+  .speed button{font:inherit;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:3px 11px;cursor:pointer}
+  .speed button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+  h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:28px 0 8px}
+  ol{list-style:none;margin:0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  li+li{border-top:1px solid var(--line)}
+  li button{all:unset;box-sizing:border-box;display:flex;gap:14px;width:100%;padding:11px 16px;cursor:pointer}
+  li button:hover{background:var(--accent-soft)}
+  li button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  li.on button{background:var(--accent-soft);font-weight:600}
+  .t{font-variant-numeric:tabular-nums;color:var(--muted);min-width:3.2em}
+  li.on .t{color:var(--accent)}
+  .foot{color:var(--muted);font-size:.85rem;margin-top:22px}
+  .foot a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <h1><span class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 18V6l8 7 8-7v12"/></svg></span>Meridian audio guide</h1>
+  <p class="sub">A 22-minute spoken tour of every screen in the Meridian Service Desk ITSM demo. Listen first, then explore the tool.</p>
+
+  <section class="player">
+    <p class="now">Now playing<b id="now">Welcome</b></p>
+    <audio id="a" controls preload="metadata" src="meridian-audio-guide.mp3"></audio>
+    <div class="speed" role="group" aria-label="Playback speed">Speed
+      <button data-r="1" aria-pressed="true">1×</button><button data-r="1.25" aria-pressed="false">1.25×</button><button data-r="1.5" aria-pressed="false">1.5×</button>
+    </div>
+  </section>
+
+  <h2>Chapters</h2>
+  <ol id="ch"></ol>
+
+  <p class="foot">When you're at a browser, open the tool: <a href="https://jkullappagari.github.io/ITSM-demo/">jkullappagari.github.io/ITSM-demo</a>. Start with the walkthrough “Major incident from alert to review”.</p>
+</main>
+<script>
+const CH=[[0,'Welcome'],[79,'The layout, and how to get there'],[244,'The Service Desk'],[402,'Walkthroughs'],[517,'Service catalogue'],[597,'Problems and the known error database'],[697,'Changes and releases'],[827,'Knowledge base'],[874,'Event monitoring'],[950,'CMDB and assets'],[1055,'Improvement, processes and reports'],[1160,'How the modules affect each other'],[1256,'Tips for your first visit']];
+const a=document.getElementById('a'),ol=document.getElementById('ch'),now=document.getElementById('now');
+const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+CH.forEach(([s,n],i)=>{const li=document.createElement('li');const b=document.createElement('button');
+  b.innerHTML=`<span class="t">${fmt(s)}</span><span>${i?i+'. ':''}${n}</span>`;
+  b.onclick=()=>{a.currentTime=s;a.play().catch(()=>{})};li.appendChild(b);ol.appendChild(li)});
+let cur=-1;
+function mark(){let i=0;CH.forEach(([s],j)=>{if(a.currentTime>=s-0.3)i=j});if(i===cur)return;cur=i;
+  [...ol.children].forEach((li,j)=>li.classList.toggle('on',j===i));now.textContent=(i?i+'. ':'')+CH[i][1]}
+a.addEventListener('timeupdate',mark);mark();
+document.querySelectorAll('.speed button').forEach(b=>b.onclick=()=>{a.playbackRate=+b.dataset.r;
+  document.querySelectorAll('.speed button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+// remember where the listener stopped, on this device only
+const K='meridian-audio-pos';
+a.addEventListener('loadedmetadata',()=>{try{const p=+localStorage.getItem(K);if(p>5&&p<a.duration-5)a.currentTime=p}catch(e){}});
+a.addEventListener('timeupdate',()=>{try{localStorage.setItem(K,Math.floor(a.currentTime))}catch(e){}});
+</script>
+</body>
+</html>

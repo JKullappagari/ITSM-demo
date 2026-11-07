@@ -25,4 +25,6 @@ writeFileSync(join(root, 'dist', 'index.html'), html);
 // The audio guide is published next to the page, so the live site can serve it.
 const audio = join(root, 'audio-guide', 'meridian-audio-guide.mp3');
 if (existsSync(audio)) copyFileSync(audio, join(root, 'dist', 'meridian-audio-guide.mp3'));
+const player = join(root, 'audio-guide', 'player.html');
+if (existsSync(player)) copyFileSync(player, join(root, 'dist', 'audio.html'));
 console.log(`dist/index.html written: ${scripts.length} scripts inlined, ${(html.length / 1024).toFixed(0)} KB`);
