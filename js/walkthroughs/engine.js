@@ -10,10 +10,19 @@ function startTour(id){
   save();document.body.classList.add('touring');$('#coach').hidden=false;
   tourTimer=setInterval(tick,250);enterStep(0,false);
 }
+function tourSave(){if(TOUR&&!TOUR.finished)store.set(KEY+'-tour',JSON.stringify({id:TOUR.def.id,i:TOUR.i,ctx:TOUR.ctx,min:TOUR.min}));else store.del(KEY+'-tour')}
+/* Picks up a walkthrough that was in progress before the page was refreshed. Returns true if it did. */
+function resumeTour(){
+  let s=null;try{s=JSON.parse(store.get(KEY+'-tour')||'null')}catch(e){}
+  const def=s&&TOURS.find(t=>t.id===s.id);if(!def||!(s.i>=0&&s.i<def.steps.length)){store.del(KEY+'-tour');return false}
+  TOUR={def,i:s.i,ctx:s.ctx||{since:Date.now()},done:false,back:false,min:!!s.min,scrolled:false,hasT:null};
+  document.body.classList.add('touring');$('#coach').hidden=false;tourTimer=setInterval(tick,250);enterStep(s.i,false);
+  toast('Walkthrough resumed where you left off');return true;
+}
 function enterStep(i,back){
   const T=TOUR;T.i=i;T.done=false;T.back=!!back;T.scrolled=false;T.hasT=null;clearTimeout(T.adv);
   const s=T.def.steps[i];try{if(s.enter)s.enter(T.ctx)}catch(e){console.error(e)}
-  renderCoach();setTimeout(tick,100);
+  renderCoach();tourSave();setTimeout(tick,100);
 }
 function curStep(){return TOUR.def.steps[TOUR.i]}
 function tourTarget(s){
@@ -55,14 +64,14 @@ function renderCoach(){
 }
 function finishTour(){
   const T=TOUR;const d=toursDone();if(!d.includes(T.def.id)){d.push(T.def.id);store.set(KEY+'-tours',JSON.stringify(d))}
-  T.finished=true;clearInterval(tourTimer);$('#tourRing').hidden=true;const co=$('#coach');co.classList.remove('min','left');
+  T.finished=true;tourSave();clearInterval(tourTimer);$('#tourRing').hidden=true;const co=$('#coach');co.classList.remove('min','left');
   const nextT=TOURS.find(t=>!d.includes(t.id));
   co.innerHTML=`<div class="coach-top"><span class="eyebrow">Walkthrough complete</span><button class="x" data-tour="exit" aria-label="Close">×</button></div><div class="coach-prog"><i style="width:100%"></i></div>
     <h3>${esc(T.def.title)}</h3><div class="coach-body">You worked through all ${T.def.steps.length} steps. The records you created stay in the demo data, so you can open them again from the Service Desk.</div>
     <div class="actions"><button class="btn" data-tour="lib">All walkthroughs</button>${nextT?`<button class="btn primary" data-tourstart="${nextT.id}">Next: ${esc(nextT.short)}</button>`:''}</div>`;
   if(ui.view==='walkthroughs')render();
 }
-function endTour(){clearInterval(tourTimer);if(TOUR)clearTimeout(TOUR.adv);TOUR=null;$('#tourRing').hidden=true;$('#coach').hidden=true;document.body.classList.remove('touring')}
+function endTour(){store.del(KEY+'-tour');clearInterval(tourTimer);if(TOUR)clearTimeout(TOUR.adv);TOUR=null;$('#tourRing').hidden=true;$('#coach').hidden=true;document.body.classList.remove('touring')}
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-tourstart],[data-tour],[data-ciact]');if(!b)return;const d=b.dataset;
   if(d.tourstart){startTour(d.tourstart);return}
@@ -70,7 +79,7 @@ document.addEventListener('click',e=>{
     openDrawer(createForm('CHG',{title:`Increase capacity for ${c.name}`,service:c.service,changeType:'Normal',risk:'Medium',ci:c.id,desc:`CPU ${c.cap.cpu}%, memory ${c.cap.mem}%, disk ${c.cap.disk}%, growing ${c.cap.growth}% a month. Add capacity before the 90% threshold.`}));bindCreate();return}
   const k=d.tour;
   if(k==='next')nextStep();else if(k==='back')prevStep();else if(k==='show')showMe();else if(k==='exit')endTour();
-  else if(k==='min'){TOUR.min=true;renderCoach()}else if(k==='max'){TOUR.min=false;renderCoach()}
+  else if(k==='min'){TOUR.min=true;renderCoach();tourSave()}else if(k==='max'){TOUR.min=false;renderCoach();tourSave()}
   else if(k==='lib'){endTour();location.hash='walkthroughs'}
 });
 

@@ -1,7 +1,7 @@
 /* Meridian Service Desk: Record extras: tasks, replies, assignment, KCS knowledge form */
 "use strict";
 /* ---------- record extras: requests, replies, assignment ---------- */
-function markRec(id){const d=$('#drawer');d.dataset.id=id;d.dataset.view='rec'}
+function markRec(id){const d=$('#drawer');d.dataset.id=id;d.dataset.view='rec';openSave(id)}
 function reqTasks(t){
   if(t.type!=='REQ'||!t.tasks||!t.tasks.length)return '';
   const d=t.tasks.filter(x=>x.status==='Done').length;const live=t.status==='Fulfilment';

@@ -4,20 +4,20 @@
 
 An interactive demonstration of IT service management (ITSM) as it should work. It shows how incidents, problems, changes, requests, releases, knowledge, configuration and improvement fit together, how management reports come out of that work, and lets anyone practise real scenarios through guided walkthroughs.
 
-Everything runs in the browser. There is no server and no database: sample data is generated relative to today, and anything a viewer changes is kept in that viewer's browser only. **Reset demo data** in the sidebar starts clean.
+Everything runs in the browser. There is no server and no database: sample data is generated relative to today, and anything a viewer changes is kept in that viewer's browser only. **Reset demo data** in the sidebar starts clean. Refreshing the page keeps your records, the record you had open and any walkthrough in progress.
 
 ## What is in it
 
 | Area | What it demonstrates |
 | --- | --- |
-| Service Desk | Log and work incidents, major incidents, problems, changes, requests and releases. Impact × urgency priority, SLA clocks, lifecycle steppers, linked records, replies to the caller, reassignment and escalation |
+| Service Desk | Log and work incidents, major incidents, problems, changes, requests and releases. Impact × urgency priority, SLA clocks, lifecycle steppers, linked records, replies to the caller, reassignment and escalation. **Known error lookup**: matching workarounds appear as you log an incident, and any open incident can search the KEDB and apply one |
 | Walkthroughs | 17 guided scenarios. A coach panel explains each step, highlights where to click and moves on once the step is done |
 | Service catalogue | Requestable items with targets, approval rules and fulfilment tasks |
 | Problems & KEDB | Problem register, known error database, and trend detection that suggests problems from repeat incidents |
-| Changes & releases | Standard, normal and emergency paths compared, the CAB agenda, a 14-day change calendar and the release pipeline |
+| Changes & releases | Standard, normal and emergency paths compared. Standard changes are scheduled as soon as they are raised; normal changes get a **risk assessment** questionnaire and **CAB votes** before the decision. The CAB agenda, a 14-day change calendar and the release pipeline |
 | Knowledge base | Self-help, runbooks and known errors in the KCS structure (issue, environment, resolution, cause) with a review step before publishing |
 | Event monitoring | Alerts with de-duplication, acknowledge or clear, and raising an incident from an event |
-| CMDB & assets | Service dependency map with **failure simulation**, configuration item register, laptop asset register (In stock → Allocated → In use), hardware stock and licence compliance |
+| CMDB & assets | Service dependency map with **failure simulation**, configuration item register, laptop asset register (In stock → Allocated → In use), hardware stock and licence compliance. Each configuration item shows its **incident and change history** |
 | Improvement register | Continual improvement: value against effort, a lifecycle from idea to measured benefit, links back to post-incident reviews |
 | Processes | 17 practices with their stages, KPIs and how they connect |
 | Management reports | 16 report tabs, including **cost of downtime** with live counters, service levels, satisfaction, suppliers, continuity and improvement |
@@ -52,6 +52,7 @@ js/router.js               hash routing (#desk, #changes, #dashboard-costs, ...)
 js/views/*.js              one file per screen, plus costs.js (cost model) and dashboard.js (reports)
 js/records.js              record drawer: create forms, detail view, lifecycle actions
 js/records-extras.js       request tasks, replies, assignment, KCS knowledge form, swarming
+js/records-depth.js        known error lookup, change risk assessment, CAB votes, CI incident history
 js/walkthroughs/engine.js  coach panel, highlight ring, auto-advance, "Do it for me"
 js/walkthroughs/tours*.js  the scenarios
 scripts/build.mjs          bundles everything into dist/index.html

@@ -54,8 +54,8 @@ TOURS.push(
    b:'The monthly OS patch follows an approved template, so it is a <b>Standard</b> change with <b>Low</b> risk. Click <b>Create change</b>.',
    target:'#createForm button[type=submit]',done:c=>{const x=fresh('CHG',x=>x.changeType==='Standard');if(x)c.std=x.id;return !!x},
    show:()=>{if(!$('#createForm[data-type="CHG"]')){openDrawer(createForm('CHG',STD2_PRESET));bindCreate()}submitIf('#createForm')}},
-  {t:'Straight to the schedule',rec:'std',b:'Click <b>Move to Assessment</b>, then <b>Pre-approved: schedule</b>. There is no CAB step.',
-   target:PRI,done:c=>stAt(c.std,'Scheduled'),show:c=>{for(let k=0;k<2&&!stAt(c.std,'Scheduled');k++)clickPrimary(c.std)}},
+  {t:'Straight to the schedule',info:true,rec:'std',enter:c=>openRec(c.std),b:'It is already <b>Scheduled</b>. A standard change skips assessment and CAB because its template was approved once.',
+   target:'#drawer .section .steps'},
   {t:'Now the risky one',enter:()=>{openDrawer(createForm('CHG',NRM_PRESET));bindCreate()},
    b:'Moving the payments database is a <b>Normal</b> change with <b>High</b> risk. The form includes the cut-over and back-out plans. Click <b>Create change</b>.',
    target:'#createForm button[type=submit]',done:c=>{const x=fresh('CHG',x=>x.changeType==='Normal'&&x.title.startsWith('Migrate'));if(x)c.nrm=x.id;return !!x},
@@ -68,7 +68,7 @@ TOURS.push(
   {t:'Read the impact',info:true,b:'The application and the Payments Gateway service go down with it, costing about S$85k an hour. That is why this change needs CAB, a tested back-out plan and a quiet window.',target:'#simImpact'},
   {t:'Send it to CAB',rec:'nrm',enter:c=>{ui2.cmdb.simOn=false;ui2.cmdb.fail=null;openDetail(c.nrm)},b:'Click <b>Move to CAB approval</b>.',target:PRI,done:c=>stAt(c.nrm,'CAB approval'),show:c=>clickPrimary(c.nrm)},
   {t:'CAB approves it',rec:'nrm',b:'CAB checks the plan, the impact and the timing, and agrees the Saturday window. Click <b>Approve at CAB</b>.',target:'#drawer [data-act="approve"]',done:c=>stAt(c.nrm,'Scheduled'),show:c=>{openRec(c.nrm);clickSel('#drawer [data-act="approve"]')}},
-  {t:'Both on the calendar',info:true,enter:()=>goView('changes'),b:'Both changes are now on the change calendar. The standard change took two clicks and no meeting. The normal change needed assessment, an impact check and a CAB decision. The effort matches the risk.',target:c=>`#chgCal [data-open="${c.nrm}"]`}
+  {t:'Both on the calendar',info:true,enter:()=>goView('changes'),b:'Both changes are now on the change calendar. The standard change took one click and no meeting. The normal change needed assessment, an impact check and a CAB decision. The effort matches the risk.',target:c=>`#chgCal [data-open="${c.nrm}"]`}
  ]},
 
 {id:'laptop',short:'Laptop lifecycle',title:'Hardware lifecycle: from laptop request to the user’s desk',role:'Service desk analyst, desktop support, asset manager',mins:5,

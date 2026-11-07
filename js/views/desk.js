@@ -25,7 +25,7 @@ function viewDesk(){
   const rows=deskRows();const shown=rows.slice(0,d.limit);
   return `
   <div class="pagehead"><div><span class="eyebrow">Service Desk</span><h1>Work queue</h1><p>Log and work incidents, problems, changes, service requests and releases. Open any record to move it through its lifecycle.</p></div>
-    <div class="actions"><button class="btn primary" data-new="INC">+ New record</button></div></div>
+    <div class="actions"><button class="btn primary" data-new="INC">+ New record</button><button class="btn" data-kedb="1">Search known errors</button></div></div>
   ${miBanner()}
   <div class="walk"><div><h3>Learn by doing: guided walkthroughs</h3><p class="muted" style="margin-top:4px">${TOURS.length} real scenarios, from a major incident to a monthly service review. A coach explains each step and highlights where to click.</p></div><div class="walk-actions"><button class="btn primary" data-tourstart="mi">Start: major incident</button><a class="btn" href="#walkthroughs">All walkthroughs</a></div></div>
   <div style="display:flex;flex-direction:column;gap:10px">

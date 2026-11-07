@@ -132,6 +132,12 @@ const TOURS=[
    target:()=>$('#createForm[data-type="CHG"] button[type=submit]')||'#drawer [data-act="raiseCHG"]',
    done:c=>{const x=fresh('CHG',x=>x.links.includes(c.prb));if(x)c.chg=x.id;return !!x},
    show:c=>{if(!$('#createForm[data-type="CHG"]')){openDetail(c.prb);clickSel('#drawer [data-act="raiseCHG"]')}submitIf('#createForm')}},
+  {t:'Use it on the next call',enter:()=>{openDrawer(createForm('INC',KE_PRESET));bindCreate()},
+   b:'Another remote user calls about VPN drops. As the desk types the description, your known error appears under the form. Click <b>Use workaround</b>, then <b>Create incident</b>.',
+   why:'This is what the KEDB is for: the desk gives a tested workaround in minutes instead of investigating from scratch.',
+   target:c=>$(`#keHint [data-keuse="${c.prb}"][aria-pressed="false"]`)||'#createForm button[type=submit]',
+   done:c=>{const x=fresh('INC',x=>x.ke===c.prb);if(x)c.inc2=x.id;return !!x},
+   show:c=>{if(!$('#createForm[data-type="INC"]')){openDrawer(createForm('INC',KE_PRESET));bindCreate()}const f=$('#createForm');f.dataset.ke=c.prb;submitIf('#createForm')}},
   {t:'Find it in the known error database',info:true,enter:()=>{ui2.prb='kedb';goView('problems')},b:'Your known error is now in the KEDB with its symptom, workaround, root cause and knowledge article. The desk checks here first when a similar incident comes in.',target:c=>`#kedb tr[data-open="${c.prb}"]`},
   {t:'What happens next',info:true,enter:()=>goView('dashboard-problem'),b:'Once the change is in and VPN incidents stop, the problem is resolved and closed. The problem report shows open problems by stage, root cause categories and which problems drive the most incidents.',target:'main .tiles'}
  ]},
@@ -149,9 +155,13 @@ const TOURS=[
    target:PRI,done:c=>stAt(c.chg,'Assessment'),show:c=>clickPrimary(c.chg)},
   {t:'Check what depends on it',info:true,enter:()=>{ui2.cmdb.svc='Payments Gateway';goView('cmdb')},
    b:'The service map shows the payment workers sit behind a shared load balancer used by other services. This is the impact evidence CAB needs.',target:'.map'},
-  {t:'Submit to CAB',rec:'chg',enter:c=>openRec(c.chg),b:'Click <b>Move to CAB approval</b>. The change joins the agenda for the weekly Change Advisory Board.',
-   target:PRI,done:c=>stAt(c.chg,'CAB approval'),show:c=>clickPrimary(c.chg)},
-  {t:'Record the CAB decision',rec:'chg',b:'CAB reviews the plan, risk and timing, and agrees it. Click <b>Approve at CAB</b>.',
+  {t:'Answer the risk questions',rec:'chg',enter:c=>openRec(c.chg),b:'The risk assessment scores the change. Some answers are filled in from the CMDB and the change calendar. Tick or untick them, then click <b>Move to CAB approval</b>. The change joins the agenda for the weekly Change Advisory Board.',
+   why:'The assessment can raise the risk the requester chose, never lower it, so a change can’t be talked down to avoid scrutiny.',
+   target:'#riskBox',done:c=>stAt(c.chg,'CAB approval'),show:c=>clickPrimary(c.chg)},
+  {t:'Record the CAB votes',rec:'chg',b:'Each CAB member gives a view. Record at least three votes, for example <b>Approve</b> from the chair, the service owner and security.',
+   target:'#cabBox',done:c=>{const x=get(c.chg);return !!(x&&cabTally(x).n>=3)},
+   show:c=>{openRec(c.chg);[0,1,2].forEach(i=>clickSel(`#cabBox [data-act="vote:${i}:Approve"]`))}},
+  {t:'Record the CAB decision',rec:'chg',b:'With the votes in, the change authority agrees the plan, risk and timing. Click <b>Approve at CAB</b>. The vote count goes into the history.',
    why:'CAB advises and the change authority decides. A rejected change is closed with the reason recorded.',
    target:'#drawer [data-act="approve"]',done:c=>stAt(c.chg,'Scheduled'),show:c=>{openRec(c.chg);clickSel('#drawer [data-act="approve"]')}},
   {t:'Check the forward schedule',info:true,enter:()=>goView('dashboard-change'),
@@ -173,10 +183,8 @@ const TOURS=[
    why:'Making routine work standard frees CAB to spend its time on changes that carry real risk.',
    target:'#createForm button[type=submit]',done:c=>{const x=fresh('CHG',x=>x.changeType==='Standard');if(x)c.chg=x.id;return !!x},
    show:()=>{if(!$('#createForm[data-type="CHG"]')){openDrawer(createForm('CHG',STD_PRESET));bindCreate()}submitIf('#createForm')}},
-  {t:'Confirm it matches the template',rec:'chg',b:'Check that the work matches the standard template. Click <b>Move to Assessment</b>.',
-   target:PRI,done:c=>stAt(c.chg,'Assessment'),show:c=>clickPrimary(c.chg)},
-  {t:'Schedule without CAB',rec:'chg',b:'Because it is pre-approved, it goes straight to the schedule. Click <b>Pre-approved: schedule</b>.',
-   target:PRI,done:c=>stAt(c.chg,'Scheduled'),show:c=>clickPrimary(c.chg)},
+  {t:'Scheduled straight away',info:true,rec:'chg',enter:c=>openRec(c.chg),b:'Because it was raised from a pre-approved template, it skipped <b>Assessment</b> and <b>CAB approval</b> and is already <b>Scheduled</b>. The history shows the template approval.',
+   target:'#drawer .section .steps'},
   {t:'Implement and record the outcome',rec:'chg',b:'Click <b>Move to Implementing</b>, then <b>Implemented successfully</b>.',
    target:PRI,done:c=>{const x=get(c.chg);return !!(x&&x.outcome)},show:c=>{for(let k=0;k<3;k++){const x=get(c.chg);if(!x||x.outcome)break;clickPrimary(c.chg)}}},
   {t:'Close it',rec:'chg',b:'Click <b>Move to Closed</b>. If a standard change ever fails, it is taken off the pre-approved list until reviewed.',
@@ -307,6 +315,7 @@ const TOURS=[
   {t:'Pick the period',info:true,enter:()=>goView('dashboard-overview'),b:'Switch between 7, 30 and 90 days to compare. A monthly review normally uses <b>Last 30 days</b>.',target:'[data-period="30"]'}
  ]}
 ];
+const KE_PRESET={title:'VPN keeps disconnecting when working from home',service:'Network & VPN',caller:'Priya Iyer',impact:3,urgency:2,desc:'Disconnected from the VPN four times this morning.'};
 const CAB_PRESET={title:'Apply vendor patch 3.4.1 to payment workers',service:'Payments Gateway',changeType:'Normal',risk:'Medium',desc:'Implement: patch pgw-app-01, then pgw-app-02, one node at a time behind the load balancer. Back-out: reinstall 3.4.0 from the saved package (20 minutes). Test: send test payments to the bank sandbox.'};
 const STD_PRESET={title:'Renew TLS certificate – Client Portal',service:'Client Portal',changeType:'Standard',risk:'Low',desc:'Standard change template SC-014: replace the certificate on the portal load balancer and verify with an SSL check.'};
 function relForm(c){openDrawer(createForm('REL',{title:'Client Portal 4.13',service:'Client Portal',date:new Date(Date.now()+10*DAY).toISOString().slice(0,10),links:c.chgs}));bindCreate()}

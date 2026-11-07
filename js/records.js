@@ -2,8 +2,8 @@
 "use strict";
 /* ---------- drawer ---------- */
 let lastFocus=null;
-function openDrawer(html){lastFocus=document.activeElement;const d=$('#drawer');d.innerHTML=html;d.dataset.view='form';d.hidden=false;$('#scrim').hidden=false;d.scrollTop=0;const f=d.querySelector('input,select,textarea,button');if(f)f.focus({preventScroll:true})}
-function closeDrawer(){$('#drawer').hidden=true;$('#scrim').hidden=true;if(lastFocus&&lastFocus.focus)try{lastFocus.focus()}catch(e){}}
+function openDrawer(html){lastFocus=document.activeElement;const d=$('#drawer');if(d.hidden){d.classList.remove('opening');void d.offsetWidth;d.classList.add('opening')}d.innerHTML=html;d.dataset.view='form';d.hidden=false;$('#scrim').hidden=false;d.scrollTop=0;const f=d.querySelector('input,select,textarea,button');if(f)f.focus({preventScroll:true})}
+function closeDrawer(){openSave(null);$('#drawer').hidden=true;$('#scrim').hidden=true;if(lastFocus&&lastFocus.focus)try{lastFocus.focus()}catch(e){}}
 
 function createForm(type,preset){
   preset=preset||{};
@@ -19,7 +19,8 @@ function createForm(type,preset){
       <div class="row2"><div class="field"><label for="f-impact">Impact</label><select id="f-impact">${[1,2,3].map(v=>`<option value="${v}" ${v==i?'selected':''}>${v} – ${IMPACT[v]}${v===1?' (many users / critical service)':v===2?' (department / degraded)':' (single user)'}</option>`).join('')}</select></div>
       <div class="field"><label for="f-urgency">Urgency</label><select id="f-urgency">${[1,2,3].map(v=>`<option value="${v}" ${v==u?'selected':''}>${v} – ${URGENCY[v]}${v===1?' (business stopped)':v===2?' (workaround is hard)':' (can wait)'}</option>`).join('')}</select></div></div>
       <div class="calc" id="prioCalc"></div>
-      <label class="check"><input type="checkbox" id="f-major"> <span>Declare as a major incident now (opens the major incident track and a bridge)</span></label>`;
+      <label class="check"><input type="checkbox" id="f-major"> <span>Declare as a major incident now (opens the major incident track and a bridge)</span></label>
+      <div class="kehint" id="keHint" hidden></div>`;
   }else if(type==='PRB'){
     const pl=(preset.links||[]).map(get).filter(Boolean);const incs=pl.concat(DB.items.filter(t=>t.type==='INC'&&!pl.includes(t)).sort((a,b)=>b.created-a.created).slice(0,60));
     body=`<div class="field"><label for="f-title">Problem statement</label><input type="text" id="f-title" required value="${esc(preset.title||'')}" placeholder="e.g. Repeated VPN disconnects for remote users"></div>
@@ -60,7 +61,7 @@ function updateCalc(){
     pc.innerHTML=`<span class="eyebrow">Calculated priority</span><span class="big">${prioTag(p)}</span><span>Respond within <b>${RESP[p]}</b> · resolve within <b>${SLA[p]} h</b></span>${p==='P1'?'<span class="tag mi">Major incident candidate</span>':''}`;
     const mj=$('#f-major');if(mj&&p==='P1'&&!mj.dataset.touched)mj.checked=true;if(mj&&p!=='P1'&&!mj.dataset.touched)mj.checked=false;}
   const cn=$('#chgNote');
-  if(cn){const c=$('#f-ctype').value;cn.textContent=c==='Standard'?'Standard changes are pre-approved and low risk. They skip CAB and go straight to scheduling.':c==='Emergency'?'Emergency changes go to the Emergency CAB (ECAB) for fast approval, usually to restore service.':'Normal changes are risk-assessed and approved at the weekly Change Advisory Board.'}
+  if(cn){const c=$('#f-ctype').value;cn.textContent=c==='Standard'?'Standard changes are pre-approved and low risk. Creating one from its template schedules it straight away: no assessment and no CAB.':c==='Emergency'?'Emergency changes go to the Emergency CAB (ECAB) for fast approval, usually to restore service.':'Normal changes are risk-assessed and approved at the weekly Change Advisory Board.'}
   const rn=$('#reqNote');
   if(rn){const c=CATALOG.find(x=>x.name===$('#f-item').value);rn.innerHTML=`<span class="eyebrow">Fulfilment target</span><b class="mono">${c.target} h</b><span class="muted">${c.approval?'Needs line-manager approval first':'No approval needed'}</span>`}
 }
@@ -81,6 +82,7 @@ function submitCreate(form){
     const pl=new Date(v('f-planned')).getTime();
     Object.assign(t,{title:v('f-title')||'Untitled change',service:v('f-service'),changeType:v('f-ctype'),risk:v('f-risk'),status:'Draft',group:GROUP_OF[v('f-service')],assignee:'',planned:isNaN(pl)?now+5*DAY:pl,outcome:null,desc:v('f-desc')});
     t.notes.push({t:now,who:'Change Manager',text:`Request for change raised (${t.changeType.toLowerCase()}, ${t.risk.toLowerCase()} risk)`});
+    if(t.changeType==='Standard'){t.status='Scheduled';t.assignee=pick2(PEOPLE);t.notes.push({t:now+1000,who:'Change Manager',text:'Pre-approved standard change template: no assessment or CAB needed. Status changed to Scheduled'})}
   }else if(type==='REQ'){
     const item=v('f-item');const c=CATALOG.find(x=>x.name===item);
     Object.assign(t,{title:`${item} for ${v('f-for')||'requester'}`,item,requestedFor:v('f-for'),service:'Service catalogue',status:'Submitted',group:'Service Desk L1',assignee:'',approval:c.approval});
@@ -94,6 +96,7 @@ function submitCreate(form){
   if(type==='INC'||type==='CHG'){const app=DB.ci.find(c=>c.service===t.service&&c.cls==='Application');if(app)t.ci=app.id}
   if(form.dataset.ci)t.ci=form.dataset.ci;
   if(form.dataset.evt){const ev=get(form.dataset.evt);if(ev){ev.status='Incident raised';ev.inc=t.id;t.ci=ev.ci;t.events=[ev.id];t.notes.push({t:now,who:'Event management',text:`Raised from event ${ev.id}: ${ev.message}`})}}
+  if(type==='INC'&&form.dataset.ke){const p=get(form.dataset.ke);if(p)applyKe(t,p,now+2000,'Service Desk')}
   links.forEach(id=>{const o=get(id);if(o&&o.links&&!o.links.includes(t.id))o.links.push(t.id)});
   DB.items.push(t);IDX.set(t.id,t);save();
   toast(`${t.id} created`);render();openDetail(t.id);
@@ -118,7 +121,7 @@ function detailActions(t){
     if(isOpen(t)&&!t.escalated)a.push(['escalate','Escalate to duty manager','']);
     a.push(['raisePRB','Raise problem','']);a.push(['raiseCHG','Raise change','']);
   }else if(t.type==='CHG'){
-    if(t.status==='CAB approval'){a.push(['approve',t.changeType==='Emergency'?'Approve at ECAB':'Approve at CAB','primary']);a.push(['reject','Reject','danger'])}
+    if(t.status==='CAB approval'){const c=cabTally(t);a.push(['approve',t.changeType==='Emergency'?'Approve at ECAB':'Approve at CAB'+(c.n?` (${c.yes} of ${c.n} votes for)`:''),'primary']);a.push(['reject','Reject','danger'])}
     else if(t.status==='Assessment'&&t.changeType==='Standard')a.push(['skipcab','Pre-approved: schedule','primary']);
     else if(t.status==='Implementing'){a.push(['out:Successful','Implemented successfully','primary']);a.push(['out:Failed','Failed','danger']);a.push(['out:Backed out','Backed out','danger'])}
     else if(next&&t.status!=='Rejected')a.push(['next',`Move to ${next}`,'primary']);
@@ -178,10 +181,10 @@ function openDetail(id){
   openDrawer(`<div class="dhead"><div><span class="eyebrow mono" style="letter-spacing:.02em">${t.id} ${t.major?'<span class="tag mi">Major incident</span>':''}</span><h2>${esc(t.title)}</h2><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${pill(t)}${t.escalated?'<span class="tag mi">Escalated</span>':''}${t.reopened?'<span class="tag">Reopened</span>':''}</div></div><button class="x" data-close="1" aria-label="Close">×</button></div>
     <div class="section"><span class="eyebrow">${TYPES[t.type].name} lifecycle</span>${stepperHtml(FLOW[t.type],t.status)}</div>
     ${acts.length?`<div class="actions">${acts.map(([k,l,c,dis])=>`<button class="btn ${c}" data-act="${k}" ${dis?'disabled':''}>${esc(l)}</button>`).join('')}</div>`:''}
-    ${prbInputs(t)}${mi}${ke}${reqTasks(t)}
+    ${prbInputs(t)}${riskBox(t)}${cabBox(t)}${mi}${ke}${reqTasks(t)}
     <dl class="facts">${facts.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
     ${t.desc?`<div class="section"><span class="eyebrow">Details</span><p>${esc(t.desc)}</p></div>`:''}
-    ${kbSection(t)}
+    ${keSection(t)}${kbSection(t)}
     ${t.csat?`<div class="section" id="csatBox"><span class="eyebrow">Customer satisfaction survey</span><div class="quote"><span class="stars" aria-label="${t.csat.score} out of 5">${'★'.repeat(t.csat.score)}${'☆'.repeat(5-t.csat.score)}</span> <b>${t.csat.score}/5</b>${t.csat.comment?` · “${esc(t.csat.comment)}”`:''}</div>${csatFollow(t)}</div>`:''}
     ${t.events&&t.events.length?`<div class="section"><span class="eyebrow">Raised from monitoring events</span><div class="links">${t.events.map(get).filter(Boolean).map(e=>`<button class="linkchip" data-open="${e.id}">${e.id} <span class="sev sev-${e.sev}">${e.sev}</span></button>`).join('')}</div></div>`:''}
     <div class="section"><span class="eyebrow">Linked records (${links.length})</span>${links.length?`<div class="links">${links.map(l=>`<button class="linkchip" data-open="${l.id}">${l.id} <span style="font-family:var(--f-body)">${pill(l)}</span></button>`).join('')}</div>`:'<span class="muted" style="font-size:13px">None yet.</span>'}</div>
@@ -199,13 +202,17 @@ function act(id,k){
     if(CLOSED[t.type].includes(s)&&!t.resolved)t.resolved=now;
     if(!t.assignee&&!['New','Submitted','Draft','Logged'].includes(s)){t.assignee=pick2(PEOPLE);if(t.group==='Service Desk L1'&&t.type==='INC')t.group=GROUP_OF[t.service]||t.group}};
   if(k==='next'){if(t.type==='REQ'&&f[i+1]==='Fulfilled'&&t.tasks&&t.tasks.some(x=>x.status!=='Done')){toast('Complete all fulfilment tasks first');return}
-    if(t.type==='PRB'){const nx=f[i+1];if(nx==='Root cause found'){const rs=$('#rcSel');t.rootCause=rs?rs.value:(t.rootCause||ROOT_CAUSES[0]);log(`Root cause identified: ${t.rootCause}`)}if(nx==='Known error'){const w=$('#waText');t.knownError=true;t.workaround=(w&&w.value.trim())||t.workaround||WORKAROUNDS[0];log(`Known error published. Workaround: ${t.workaround}`)}}setStatus(f[i+1])}
+    if(t.type==='PRB'){const nx=f[i+1];if(nx==='Root cause found'){const rs=$('#rcSel');t.rootCause=rs?rs.value:(t.rootCause||ROOT_CAUSES[0]);log(`Root cause identified: ${t.rootCause}`)}if(nx==='Known error'){const w=$('#waText');t.knownError=true;t.workaround=(w&&w.value.trim())||t.workaround||WORKAROUNDS[0];log(`Known error published. Workaround: ${t.workaround}`)}}
+    if(t.type==='CHG'&&t.status==='Assessment')applyRisk(t,log);
+    setStatus(f[i+1])}
   else if(k==='resume')setStatus('In Progress');
   else if(k==='hold'){t.status='On Hold';log('Put on hold, awaiting caller')}
   else if(k==='declare'){t.major=true;t.majorStage='Declared';t.priority='P1';t.impact=1;t.urgency=1;if(t.status==='New')setStatus('Assigned');log('Major incident: Declared. Priority raised to P1')}
   else if(k==='mi'){const n=MI_FLOW[MI_FLOW.indexOf(t.majorStage)+1];t.majorStage=n;log(`Major incident: ${n}`);if(n==='Bridge open'&&t.status!=='In Progress'&&isOpen(t))setStatus('In Progress');if(n==='Service restored'&&isOpen(t))setStatus('Resolved')}
-  else if(k==='approve'){log(t.type==='CHG'?(t.changeType==='Emergency'?'Approved at emergency CAB':'Approved at CAB'):'Approved by line manager');setStatus(t.type==='CHG'?'Scheduled':'Fulfilment')}
-  else if(k==='reject'){log('Rejected');t.status='Rejected';t.resolved=now}
+  else if(k.startsWith('vote:')){castVote(t,k,log);save();const st=$('#drawer').scrollTop;openDetail(id);$('#drawer').scrollTop=st;return}
+  else if(k.startsWith('ke:')){const p=get(k.slice(3));if(p)applyKe(t,p,now,me)}
+  else if(k==='approve'){const c=cabTally(t);log(t.type==='CHG'?(t.changeType==='Emergency'?'Approved at emergency CAB':'Approved at CAB'+(c.n?` (votes: ${c.yes} approve, ${c.no} reject, ${c.n-c.yes-c.no} abstain)`:'')):'Approved by line manager');setStatus(t.type==='CHG'?'Scheduled':'Fulfilment')}
+  else if(k==='reject'){const c=cabTally(t);log('Rejected'+(t.type==='CHG'&&c.n?` (votes: ${c.yes} approve, ${c.no} reject)`:''));t.status='Rejected';t.resolved=now}
   else if(k==='skipcab'){log('Pre-approved standard change');setStatus('Scheduled')}
   else if(k==='skipappr')setStatus('Fulfilment');
   else if(k.startsWith('out:')){t.outcome=k.slice(4);log(`Implemented. Outcome: ${t.outcome}`);setStatus('Review')}
@@ -223,5 +230,5 @@ function act(id,k){
   save();render();openDetail(id);if(k!=='note')toast(k==='reply'?'Reply sent to caller':`${t.id} updated`);
 }
 let p2=0;function pick2(a){p2=(p2+3)%a.length;return a[p2]}
-function bindCreate(){const f=$('#createForm');if(!f)return;updateCalc();}
+function bindCreate(){const f=$('#createForm');if(!f)return;updateCalc();keHint();}
 

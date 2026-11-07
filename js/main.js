@@ -23,8 +23,8 @@ document.addEventListener('click',e=>{
   if(b.dataset.new){openDrawer(createForm(b.dataset.new));bindCreate();return}
   if(b.dataset.demo){openDrawer(createForm('INC',{service:'Payments Gateway',title:'Payment releases failing for all APAC clients',desc:'Payments queue rejecting new instructions since 14:05. Multiple clients calling in.',impact:1,urgency:1,caller:'Arjun Menon'}));bindCreate();return}
   if(b.dataset.ctype){openDrawer(createForm(b.dataset.ctype));bindCreate();return}
-  if(b.dataset.ftype){ui.desk.type=b.dataset.ftype;ui.desk.limit=40;render();return}
-  if(b.dataset.scope){ui.desk.scope=b.dataset.scope;ui.desk.limit=40;render();return}
+  if(b.dataset.ftype){ui.desk.type=b.dataset.ftype;ui.desk.limit=40;saveUi();render();return}
+  if(b.dataset.scope){ui.desk.scope=b.dataset.scope;ui.desk.limit=40;saveUi();render();return}
   if(b.dataset.more){ui.desk.limit+=40;render();return}
   if(b.dataset.period){ui.dash.period=+b.dataset.period;saveUi();render();return}
   if(b.dataset.tab){ui.dash.tab=b.dataset.tab;saveUi();render();return}
@@ -45,9 +45,11 @@ document.addEventListener('submit',e=>{if(e.target.id==='createForm'){e.preventD
 $('#scrim').addEventListener('click',closeDrawer);
 $('#resetBtn').addEventListener('click',()=>{
   const b=$('#resetBtn');
-  if(b.dataset.confirm){store.del(KEY);DB=generate(Date.now());reindex();b.textContent='Reset demo data';delete b.dataset.confirm;closeDrawer();render();toast('Demo data reset');}
+  if(b.dataset.confirm){endTour();store.del(KEY);DB=generate(Date.now());reindex();b.textContent='Reset demo data';delete b.dataset.confirm;closeDrawer();render();toast('Demo data reset');}
   else{b.dataset.confirm='1';b.textContent='Click again to confirm reset';setTimeout(()=>{if(b.dataset.confirm){delete b.dataset.confirm;b.textContent='Reset demo data'}},4000)}
 });
 window.addEventListener('hashchange',route);
 
 load();route();
+/* After a refresh: carry on with the walkthrough, or reopen the record that was open. */
+if(!resumeTour()){const o=sess.get(KEY+'-open');if(o&&get(o))openDetail(o)}
