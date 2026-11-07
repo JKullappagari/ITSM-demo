@@ -1,6 +1,7 @@
 // End-to-end QA pass across modules, driven through the UI the way a user would, in a headless browser.
 // Covers: alert -> incident -> problem -> known error -> knowledge -> change -> CMDB maintenance window -> fix,
-// dense-table layout, live SLA bars, and state surviving a refresh until Reset demo data.
+// catalogue request -> approval -> laptop allocated -> in use,
+// dense-table layout (desk and CMDB), live SLA bars, and state surviving a refresh until Reset demo data.
 // Usage: npm run test:qa                       (index.html from this folder)
 //        PAGE=dist/index.html npm run test:qa  (the built single file)
 //        npm run test:qa -- https://jkullappagari.github.io/ITSM-demo/   (a deployed copy)
@@ -90,7 +91,38 @@ try {
   check('A successful fix resolves the problem and ends the maintenance window', after.prb === 'Resolved' && !after.maint && after.toast.includes(prbId), after);
   check('The major incident is left for the major incident manager to close', after.inc !== 'Resolved', after.inc);
 
+  /* ---------- 1b. service catalogue -> request -> asset lifecycle ---------- */
+  await nav('catalogue');
+  await page.click('[data-reqitem="New laptop"]'); await W(250);
+  await page.click('#createForm button[type=submit]'); await W(300);
+  const reqId = await did();
+  const sub = await page.evaluate(id => { const t = get(id); return { type: t.type, item: t.item, status: t.status, tasks: t.tasks.length, asset: t.asset || null }; }, reqId);
+  check('Requesting a laptop from the catalogue creates a request with fulfilment tasks', sub.type === 'REQ' && sub.item === 'New laptop' && sub.status === 'Submitted' && sub.tasks === 3, sub);
+  check('No laptop is allocated while the request still needs approval', !sub.asset, sub.asset);
+  await primary(); await W(200);                                                               // Send for approval
+  await page.click('#drawer [data-act="approve"]'); await W(200);                               // Fulfilment
+  await page.click('#drawer [data-act="task:0"]'); await W(250);                                // Allocate a laptop from stock
+  const alloc = await page.evaluate(id => { const t = get(id); const a = t.asset && get(t.asset); return a && { tag: a.tag, status: a.status, req: a.req, user: a.user }; }, reqId);
+  check('Allocating from stock moves a laptop to Allocated, linked to the request', alloc && alloc.status === 'Allocated' && alloc.req === reqId, alloc);
+  await page.click('#drawer [data-act="task:1"]'); await W(200);
+  await page.click('#drawer [data-act="task:2"]'); await W(250);                                // Deliver and record the handover
+  await primary(); await W(250);                                                               // Fulfilled
+  const done = await page.evaluate(id => { const t = get(id); return { status: t.status, asset: get(t.asset).status, log: DB.feed.filter(f => f.m === 'CMDB').slice(-2).map(f => f.x) }; }, reqId);
+  check('Handover sets the laptop to In use, the request is fulfilled and the CMDB logs both moves', done.status === 'Fulfilled' && done.asset === 'In use' && done.log.length === 2 && /Allocated/.test(done.log[0]) && /In use/.test(done.log[1]), done);
+  await nav('cmdb');
+  const assetRow = await page.locator('#main tr', { hasText: alloc ? alloc.tag : '-' }).first().innerText().catch(() => '');
+  check('The asset register shows the laptop in use against the request', assetRow.includes(reqId) && /In use/i.test(assetRow), assetRow.replace(/\s+/g, ' '));
+
   /* ---------- 2. dense tables and SLA bars ---------- */
+  // Long values in the CMDB tables stay on one line too.
+  await page.evaluate(() => {
+    const c = DB.ci.find(c => c.cls === 'Server'); c.location = 'SG1 data centre / Hall B / Row 14 / Rack 07 / U22-U24 / chassis bay 3 (shared with DR test rig)';
+    const a = DB.assets[0]; a.location = 'Singapore office / Level 12 / East wing / Hot desk zone C / Locker 1187 (awaiting collection)'; save(); render();
+  });
+  await W(200);
+  const clip = await page.evaluate(() => { const els = [...document.querySelectorAll('#main td .clip')].filter(e => e.textContent.length > 60); return { found: els.length, oneLine: els.every(e => { const cs = getComputedStyle(e); return cs.whiteSpace === 'nowrap' && cs.textOverflow === 'ellipsis' && e.getBoundingClientRect().height <= parseFloat(cs.lineHeight) * 1.5; }), hover: els.every(e => e.title.length > 60) }; });
+  check('Long CI and asset locations stay on one line, with the full text on hover', clip.found >= 2 && clip.oneLine && clip.hover, clip);
+  await shot('5-cmdb-clipping');
   const longId = await page.evaluate(() => seedInc({ service: 'Client Portal', status: 'New', impact: 1, urgency: 2,
     title: 'Users report HTTP 500 Internal Server Error with stack trace java.lang.NullPointerException at com.meridian.portal.AccountSummaryController.render(AccountSummaryController.java:214) when opening the account summary after the overnight batch' }).id);
   await page.evaluate(() => save());

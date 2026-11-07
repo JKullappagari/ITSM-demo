@@ -100,8 +100,9 @@ npm run test:qa      # end-to-end pass across modules (see below)
 1. A critical alert raises an incident with the form already filled in, and the incident is linked to the alert and its configuration item.
 2. A problem raised from that incident reaches **Known error** and appears in the KEDB at once. The next matching call shows exactly one known error badge, and a knowledge article can be created from it.
 3. A change for the fix goes through CAB votes. Its configuration item shows **Maintenance window active** only while the change is implementing, and a successful outcome resolves the problem.
-4. A very long incident summary stays on one line, the desk table fits a 1360 px window, and P1 SLA countdowns tick and change colour.
-5. Approving a change and logging an improvement survive a refresh, the open record reopens, and **Reset demo data** clears everything.
+4. A laptop requested from the service catalogue is not allocated until approval. The fulfilment task moves a laptop from In stock to **Allocated** against the request, the handover moves it to **In use**, and the asset register and activity log show both moves.
+5. A very long incident summary, and long CI and asset locations, stay on one line with the full text on hover. The desk table fits a 1360 px window, and P1 SLA countdowns tick and change colour.
+6. Approving a change and logging an improvement survive a refresh, the open record reopens, and **Reset demo data** clears everything.
 
 Run it against the built file with `PAGE=dist/index.html npm run test:qa`, or against a deployed copy with `npm run test:qa -- https://jkullappagari.github.io/ITSM-demo/`. Set `SHOTS=folder` to save screenshots of each stage.
 

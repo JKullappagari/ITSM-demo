@@ -27,7 +27,7 @@ function viewCMDB(){
   <section class="section"><div class="panel-head"><h2>Configuration item register</h2><div class="chips">${classes.map(c=>`<button class="chip" data-cmcls="${c}" aria-pressed="${f.cls===c}">${c}</button>`).join('')}</div></div>
   <div class="tablewrap"><table><thead><tr><th>ID</th><th>Name</th><th>Class</th><th>Service</th><th>Version</th><th>Status</th><th>Location</th><th>Supplier</th><th>Warranty</th><th>Incidents (90 d)</th></tr></thead><tbody>
   ${reg.map(c=>{const w=c.warranty;const wl=w?(w<Date.now()?'<span class="sla breached">Expired</span>':w<Date.now()+90*DAY?`<span class="sla risk">${fmtD(w)}</span>`:`<span class="num">${new Date(w).toLocaleDateString('en-GB',{month:'short',year:'numeric'})}</span>`):'<span class="muted">—</span>';
-    return `<tr class="click" data-open="${c.id}" tabindex="0"><td class="mono">${c.id}</td><td><span class="mono">${esc(c.name)}</span></td><td>${esc(c.cls)}</td><td>${esc(c.service)}</td><td>${esc(c.version)}</td><td><span class="pill st-${c.status==='In use'?'done':'hold'}">${c.status}</span>${maintTag(c.id)}</td><td>${esc(c.location)}</td><td>${esc(c.supplier)}</td><td>${wl}</td><td class="num">${(n=>n?`<b>${n}</b>`:'<span class="muted">0</span>')(ciInc90(c))}</td></tr>`}).join('')}</tbody></table></div></section>
+    return `<tr class="click" data-open="${c.id}" tabindex="0"><td class="mono">${c.id}</td><td><div class="clip mono">${esc(c.name)}</div></td><td>${esc(c.cls)}</td><td>${esc(c.service)}</td><td>${esc(c.version)}</td><td><span class="pill st-${c.status==='In use'?'done':'hold'}">${c.status}</span>${maintTag(c.id)}</td><td><div class="clip">${esc(c.location)}</div></td><td><div class="clip">${esc(c.supplier)}</div></td><td>${wl}</td><td class="num">${(n=>n?`<b>${n}</b>`:'<span class="muted">0</span>')(ciInc90(c))}</td></tr>`}).join('')}</tbody></table></div></section>
   <div class="grid g2">
     <section class="panel"><div class="panel-head"><h2>Hardware assets</h2><span class="muted">End-user estate</span></div><div class="tablewrap"><table><thead><tr><th>Model</th><th>Total</th><th>In use</th><th>Stock</th><th>In repair</th><th>Warranty &lt; 90 d</th></tr></thead><tbody>
     ${HW.map(h=>`<tr><td><div class="t-title">${h.model}</div><div class="t-meta">${h.cls}</div></td><td class="num">${h.total}</td><td class="num">${h.inUse}</td><td class="num">${h.stock<5?`<span class="sla risk">${h.stock}</span>`:h.stock}</td><td class="num">${h.repair}</td><td class="num">${h.exp90?`<span class="sla risk">${h.exp90}</span>`:0}</td></tr>`).join('')}</tbody></table></div></section>
@@ -113,7 +113,7 @@ function assetRegister(){
   return `<section class="section" id="astReg"><div class="panel-head"><h2>Laptop asset register</h2><span class="muted">Singapore office pool · each laptop tracked from stock to retirement</span></div>
   <div class="chips">${['All'].concat(AST_FLOW).map(x=>`<button class="chip" data-astf="${x}" aria-pressed="${f===x}">${x} <b>${x==='All'?A.length:A.filter(a=>a.status===x).length}</b></button>`).join('')}</div>
   <div class="tablewrap"><table><thead><tr><th>Asset tag</th><th>Model</th><th>Status</th><th>User</th><th>Location</th><th>Request</th><th>Warranty</th></tr></thead><tbody>
-  ${rows.map(a=>`<tr class="click" data-open="${a.id}" tabindex="0"><td class="mono">${a.tag}</td><td>${esc(a.model)}</td><td>${astPill(a)}</td><td>${esc(a.user||'—')}</td><td>${esc(a.location)}</td><td class="mono">${a.req||'—'}</td><td class="num">${a.warranty<Date.now()+90*DAY?`<span class="sla risk">${fmtD(a.warranty)}</span>`:new Date(a.warranty).toLocaleDateString('en-GB',{month:'short',year:'numeric'})}</td></tr>`).join('')}</tbody></table></div></section>`;
+  ${rows.map(a=>`<tr class="click" data-open="${a.id}" tabindex="0"><td class="mono">${a.tag}</td><td><div class="clip">${esc(a.model)}</div></td><td>${astPill(a)}</td><td><div class="clip">${esc(a.user||'—')}</div></td><td><div class="clip">${esc(a.location)}</div></td><td class="mono">${a.req||'—'}</td><td class="num">${a.warranty<Date.now()+90*DAY?`<span class="sla risk">${fmtD(a.warranty)}</span>`:new Date(a.warranty).toLocaleDateString('en-GB',{month:'short',year:'numeric'})}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
 function openAsset(a){
   const acts=[];
@@ -132,12 +132,12 @@ function allocateAsset(t){
   const a=DB.assets.find(x=>x.status==='In stock'&&x.model.startsWith('Dell'))||DB.assets.find(x=>x.status==='In stock');
   if(!a){t.notes.push({t:now,who:'Asset management',text:'No laptops in stock: purchase order raised with Brightdesk Hardware'});return}
   a.status='Allocated';a.user=t.requestedFor;a.req=t.id;a.location='Imaging bench, level 12';a.history.push({t:now,text:`Allocated to ${t.requestedFor} for ${t.id}`});
-  t.asset=a.id;t.notes.push({t:now,who:'Asset management',text:`Laptop ${a.tag} (${a.model}) moved from In stock to Allocated`});
+  t.asset=a.id;t.notes.push({t:now,who:'Asset management',text:`Laptop ${a.tag} (${a.model}) moved from In stock to Allocated`});feed('CMDB',`Asset ${a.tag} status changed to 'Allocated' for ${t.id}`,a.id);
 }
 function deployAsset(t){
   const a=t.asset&&get(t.asset);if(!a||a.status==='In use')return;const now=Date.now();
   a.status='In use';a.location='With user';a.history.push({t:now,text:`Handed over to ${a.user} and signed for`});
-  t.notes.push({t:now,who:'Asset management',text:`Laptop ${a.tag} handed over: status In use`});
+  t.notes.push({t:now,who:'Asset management',text:`Laptop ${a.tag} handed over: status In use`});feed('CMDB',`Asset ${a.tag} status changed to 'In use' (${a.user})`,a.id);
 }
 function assetOnTask(t,x){if(/allocate/i.test(x.name)&&/laptop/i.test(x.name))allocateAsset(t);if(/handover/i.test(x.name))deployAsset(t)}
 document.addEventListener('click',e=>{

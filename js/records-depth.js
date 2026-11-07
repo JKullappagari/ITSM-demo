@@ -124,7 +124,7 @@ function ciHistory(c){
 const ciInc90=c=>{const from=Date.now()-90*DAY;return DB.items.filter(t=>t.type==='INC'&&t.ci===c.id&&t.created>=from).length};
 
 /* ---------- long titles: show the full text on hover when clamped ---------- */
-function clampTitles(root){(root||document).querySelectorAll('.t-title').forEach(e=>{if(e.scrollWidth>e.clientWidth+1)e.title=e.textContent;else e.removeAttribute('title')})}
+function clampTitles(root){(root||document).querySelectorAll('.t-title,.clip').forEach(e=>{if(e.scrollWidth>e.clientWidth+1)e.title=e.textContent;else e.removeAttribute('title')})}
 AFTER_RENDER.push(()=>clampTitles($('#main')));
 
 /* ---------- wiring ---------- */
