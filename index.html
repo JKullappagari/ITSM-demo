@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meridian Service Desk</title>
+<meta name="description" content="Interactive ITSM demonstration: service desk, problem, change, release, knowledge, CMDB, improvement register, management reports and guided walkthroughs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app">
+  <nav class="side" aria-label="Main">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 18V6l8 7 8-7v12"/></svg></div>
+      <div><div class="brand-name">Meridian</div><div class="brand-sub">Service Management</div></div>
+    </div>
+    <div class="nav" id="nav">
+      <a href="#desk" data-view="desk"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 10v9"/></svg>Service Desk</a>
+      <a href="#walkthroughs" data-view="walkthroughs" class="wt-link"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Walkthroughs</a>
+      <a href="#catalogue" data-view="catalogue"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Service catalogue</a>
+      <a href="#problems" data-view="problems"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M11 8v3.5M11 14h.01"/></svg>Problems &amp; KEDB</a>
+      <a href="#changes" data-view="changes"><svg viewBox="0 0 24 24"><path d="M4 7h12l-3-3M20 17H8l3 3"/></svg>Changes &amp; releases</a>
+      <a href="#knowledge" data-view="knowledge"><svg viewBox="0 0 24 24"><path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v14c-3-1-6-1-8 1-2-2-5-2-8-1z"/><path d="M12 6v14"/></svg>Knowledge base</a>
+      <a href="#events" data-view="events"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>Event monitoring</a>
+      <a href="#cmdb" data-view="cmdb"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5"/><rect x="3" y="16" width="6" height="5"/><rect x="15" y="16" width="6" height="5"/><path d="M12 8v4M6 16v-4h12v4"/></svg>CMDB &amp; assets</a>
+      <a href="#improvement" data-view="improvement"><svg viewBox="0 0 24 24"><path d="M4 18l5-5 4 4 7-8"/><path d="M15 9h5v5"/></svg>Improvement register</a>
+      <a href="#processes" data-view="processes"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.5 12h4M11.5 12V6h5M11.5 12v6h5"/></svg>Processes</a>
+      <a href="#dashboard" data-view="dashboard"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Management reports</a>
+    </div>
+    <div class="side-foot">
+      <span class="note">Demo data, generated relative to today. Changes you make are kept in this browser only.</span>
+      <button type="button" id="resetBtn">Reset demo data</button>
+    </div>
+  </nav>
+  <main id="main"></main>
+</div>
+<div id="scrim" hidden></div>
+<aside id="drawer" hidden role="dialog" aria-modal="true" aria-label="Record"></aside>
+<div id="toast" hidden role="status"></div>
+<div id="tourRing" hidden></div>
+<div id="coach" hidden role="dialog" aria-label="Walkthrough coach"></div>
+
+<!-- Load order matters: each file adds functions and constants to one shared global scope. -->
+<script src="js/core.js"></script>
+<script src="js/reference.js"></script>
+<script src="js/data.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/router.js"></script>
+<script src="js/views/desk.js"></script>
+<script src="js/views/catalogue.js"></script>
+<script src="js/views/knowledge.js"></script>
+<script src="js/views/events.js"></script>
+<script src="js/views/cmdb.js"></script>
+<script src="js/views/problems.js"></script>
+<script src="js/views/changes.js"></script>
+<script src="js/views/improvement.js"></script>
+<script src="js/views/processes.js"></script>
+<script src="js/views/dashboard.js"></script>
+<script src="js/views/costs.js"></script>
+<script src="js/records.js"></script>
+<script src="js/records-extras.js"></script>
+<script src="js/walkthroughs/helpers.js"></script>
+<script src="js/walkthroughs/tours.js"></script>
+<script src="js/walkthroughs/tours-extra.js"></script>
+<script src="js/walkthroughs/engine.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
