@@ -57,6 +57,7 @@ function slaCell(t){
   if(t.type==='CHG')return `<span class="sla ok">${t.outcome?esc(t.outcome):'Planned '+fmtD(t.planned)}</span>`;
   if(t.type==='REL')return `<span class="sla ok">Deploy ${fmtD(t.planned)}</span>`;
   if(t.type==='PRB')return t.knownError?'<span class="tag ke">Known error</span>':'<span class="sla ok">—</span>';
+  if(isOpen(t)&&slaOf(t))return slaBar(t);
   const s=slaOf(t);return s?`<span class="sla ${s.state}">${esc(s.label)}</span>`:'';
 }
 function typeLabel(t){return t.type==='INC'&&t.major?'Major incident':TYPES[t.type].name}

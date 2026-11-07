@@ -98,7 +98,8 @@ function submitCreate(form){
   if(form.dataset.evt){const ev=get(form.dataset.evt);if(ev){ev.status='Incident raised';ev.inc=t.id;t.ci=ev.ci;t.events=[ev.id];t.notes.push({t:now,who:'Event management',text:`Raised from event ${ev.id}: ${ev.message}`})}}
   if(type==='INC'&&form.dataset.ke){const p=get(form.dataset.ke);if(p)applyKe(t,p,now+2000,'Service Desk')}
   links.forEach(id=>{const o=get(id);if(o&&o.links&&!o.links.includes(t.id))o.links.push(t.id)});
-  DB.items.push(t);IDX.set(t.id,t);save();
+  DB.items.push(t);IDX.set(t.id,t);
+  feed(FEED_MOD[type],`${t.id} logged: ${t.title}${t.priority?' ('+t.priority+')':''}`,t.id);feedNotes(t,1);save();
   toast(`${t.id} created`);render();openDetail(t.id);
 }
 
@@ -172,7 +173,7 @@ function openDetail(id){
   facts.push(['Assignment group',esc(t.group)],['Assigned to',esc(t.assignee||'Unassigned')],['Opened',fmtDT(t.created)]);
   if(t.resolved)facts.push([t.type==='REQ'?'Fulfilled':t.type==='CHG'?'Completed':'Resolved',fmtDT(t.resolved)]);
   if(t.type==='INC'&&costRate(t)>0)facts.push(['Downtime cost',costCell(t)]);
-  if(s)facts.push(['SLA',`<span class="sla ${s.state}">${esc(s.label)}</span> <span class="muted">(target ${s.target} h)</span>`]);
+  if(s)facts.push(['SLA',`${isOpen(t)?slaBar(t):`<span class="sla ${s.state}">${esc(s.label)}</span>`} <span class="muted">(target ${s.target} h)</span>`]);
   const acts=detailActions(t);
   const mi=t.type==='INC'&&t.major?`<div class="mi-box"><div class="panel-head"><h3>Major incident track</h3><span class="muted" style="font-size:12px">Comms every 30 min · PIR within 5 business days</span></div>${stepperHtml(MI_FLOW,t.majorStage||'Declared')}${swarmBox(t)}
     ${MI_FLOW.indexOf(t.majorStage)<MI_FLOW.length-1?`<div class="actions"><button class="btn danger" data-act="mi">Advance to: ${MI_FLOW[MI_FLOW.indexOf(t.majorStage)+1]}</button></div>`:`<div class="actions"><span class="muted" style="font-size:13px;align-self:center">Post-incident review complete.</span>${csiFromBtn(t)}</div>`}</div>`:'';
@@ -198,6 +199,7 @@ function act(id,k){
   const t=get(id);if(!t)return;const now=Date.now();const me='You (demo)';
   const log=txt=>t.notes.push({t:now,who:me,text:txt});
   const f=FLOW[t.type];const i=f.indexOf(t.status);
+  const n0=t.notes.length,s0=t.status;let rip=null;
   const setStatus=s=>{t.status=s;log(`Status changed to ${s}`);
     if(CLOSED[t.type].includes(s)&&!t.resolved)t.resolved=now;
     if(!t.assignee&&!['New','Submitted','Draft','Logged'].includes(s)){t.assignee=pick2(PEOPLE);if(t.group==='Service Desk L1'&&t.type==='INC')t.group=GROUP_OF[t.service]||t.group}};
@@ -209,7 +211,7 @@ function act(id,k){
   else if(k==='hold'){t.status='On Hold';log('Put on hold, awaiting caller')}
   else if(k==='declare'){t.major=true;t.majorStage='Declared';t.priority='P1';t.impact=1;t.urgency=1;if(t.status==='New')setStatus('Assigned');log('Major incident: Declared. Priority raised to P1')}
   else if(k==='mi'){const n=MI_FLOW[MI_FLOW.indexOf(t.majorStage)+1];t.majorStage=n;log(`Major incident: ${n}`);if(n==='Bridge open'&&t.status!=='In Progress'&&isOpen(t))setStatus('In Progress');if(n==='Service restored'&&isOpen(t))setStatus('Resolved')}
-  else if(k.startsWith('vote:')){castVote(t,k,log);save();const st=$('#drawer').scrollTop;openDetail(id);$('#drawer').scrollTop=st;return}
+  else if(k.startsWith('vote:')){castVote(t,k,log);feedNotes(t,n0);save();const st=$('#drawer').scrollTop;openDetail(id);$('#drawer').scrollTop=st;return}
   else if(k.startsWith('ke:')){const p=get(k.slice(3));if(p)applyKe(t,p,now,me)}
   else if(k==='approve'){const c=cabTally(t);log(t.type==='CHG'?(t.changeType==='Emergency'?'Approved at emergency CAB':'Approved at CAB'+(c.n?` (votes: ${c.yes} approve, ${c.no} reject, ${c.n-c.yes-c.no} abstain)`:'')):'Approved by line manager');setStatus(t.type==='CHG'?'Scheduled':'Fulfilment')}
   else if(k==='reject'){const c=cabTally(t);log('Rejected'+(t.type==='CHG'&&c.n?` (votes: ${c.yes} approve, ${c.no} reject)`:''));t.status='Rejected';t.resolved=now}
@@ -227,7 +229,12 @@ function act(id,k){
   else if(k==='reopen'){t.status='In Progress';t.resolved=null;t.reopened=(t.reopened||0)+1;log('Reopened: caller confirms the issue is not fixed')}
   else if(k.startsWith('kb:')){const a=get(k.slice(3));if(a){t.kb=a.id;a.uses++;log(`Applied knowledge article ${a.id}: ${a.title}`)}}
   else if(k==='note'){const tx=$('#noteText').value.trim();if(!tx)return;log(tx)}
-  save();render();openDetail(id);if(k!=='note')toast(k==='reply'?'Reply sent to caller':`${t.id} updated`);
+  feedNotes(t,n0);
+  /* Ripple effects into other modules */
+  if(k.startsWith('out:'))rip=rippleChange(t,now);
+  if(t.type==='PRB'&&s0!==t.status&&t.status==='Resolved'){const n=rippleProblem(t,now);if(n)rip=`${t.id} resolved: ${n} linked incident${n>1?'s':''} resolved too`}
+  if(t.type==='PRB'&&s0!=='Known error'&&t.status==='Known error'){t.keAt=now;rip=`${keId(t)} added to the known error database`;feed('KEDB',`${keId(t)} added: ${kbClean(t.title)}. Workaround: ${t.workaround}`,t.id)}
+  save();render();openDetail(id);if(k!=='note')toast(rip||(k==='reply'?'Reply sent to caller':`${t.id} updated`));
 }
 let p2=0;function pick2(a){p2=(p2+3)%a.length;return a[p2]}
 function bindCreate(){const f=$('#createForm');if(!f)return;updateCalc();keHint();}

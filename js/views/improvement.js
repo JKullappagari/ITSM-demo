@@ -70,7 +70,7 @@ function submitCsi(form){
   DB.seq.CSI=(DB.seq.CSI||80)+1;
   const x={kind:'CSI',id:'CSI-'+String(DB.seq.CSI).padStart(4,'0'),title:v('c-title')||'Untitled improvement',source:v('c-src'),service:v('c-svc'),value:v('c-val'),effort:v('c-eff'),status:'Idea',measure:v('c-measure')||'—',achieved:'',owner:'You (demo)',created:now,target:now+60*DAY,links:[],notes:[{t:now,who:'You (demo)',text:'Improvement logged'}]};
   const from=form.dataset.from;if(from){const s=get(from);if(s){x.links.push(from);s.csi=x.id;if(s.notes)s.notes.push({t:now,who:'You (demo)',text:`Improvement ${x.id} logged`})}}
-  DB.csi.push(x);IDX.set(x.id,x);save();render();toast(`${x.id} logged`);openDetail(x.id);
+  DB.csi.push(x);IDX.set(x.id,x);feed('CSI',`${x.id} logged: ${x.title}`,x.id);save();render();toast(`${x.id} logged`);openDetail(x.id);
 }
 function openCSI(x){
   const i=CSI_FLOW.indexOf(x.status),next=CSI_FLOW[i+1];
@@ -110,7 +110,7 @@ document.addEventListener('click',e=>{
     if(nx==='Done'){const v=($('#csiBenefit')||{}).value;if(!v||!v.trim()){toast('Record the benefit achieved first');return}x.achieved=v.trim();x.done=now}
     x.status=nx;x.notes.push({t:now,who:'You (demo)',text:nx==='Done'?`Done. Benefit: ${x.achieved}`:`Moved to ${nx}`})}
   if(d.csiact==='reject'){x.status='Rejected';x.notes.push({t:now,who:'You (demo)',text:'Rejected'})}
-  save();render();openCSI(x);toast(`${x.id} updated`);
+  feed('CSI',`${x.id} ${x.status==='Rejected'?'rejected':'moved to '+x.status}`,x.id);save();render();openCSI(x);toast(`${x.id} updated`);
 });
 document.addEventListener('change',e=>{if(['c-val','c-eff'].includes(e.target.id))updateCsiQuad()});
 document.addEventListener('submit',e=>{if(e.target.id==='csiForm'){e.preventDefault();submitCsi(e.target)}});

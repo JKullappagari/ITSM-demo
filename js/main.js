@@ -15,10 +15,10 @@ document.addEventListener('click',e=>{
   if(ds.evst){ui2.ev.status=ds.evst;render();return}
   if(ds.cmsvc){ui2.cmdb.svc=ds.cmsvc;render();return}
   if(ds.cmcls){ui2.cmdb.cls=ds.cmcls;render();return}
-  if(ds.kbact){const k=get($('#drawer').dataset.id);if(ds.kbact==='publish'){k.status='Published';k.updated=Date.now();toast(`${k.id} published`)}else{k.helpful=Math.min(100,k.helpful+1);k.views++;toast('Thanks, vote recorded')}save();render();openKB(k);return}
+  if(ds.kbact){const k=get($('#drawer').dataset.id);if(ds.kbact==='publish'){k.status='Published';k.updated=Date.now();feed('KB',`${k.id} published: ${k.title}`,k.id);toast(`${k.id} published`)}else{k.helpful=Math.min(100,k.helpful+1);k.views++;toast('Thanks, vote recorded')}save();render();openKB(k);return}
   if(ds.evact){const ev=get($('#drawer').dataset.id);
     if(ds.evact==='raise'){const sevI=ev.sev==='Critical'?1:2;const ci=get(ev.ci);openDrawer(createForm('INC',{service:ev.service,title:`${ev.message} on ${ci?ci.name:ev.service}`,desc:`Raised from monitoring event ${ev.id} (${ev.source}).`,impact:sevI,urgency:sevI,caller:'Event management',evt:ev.id}));bindCreate();return}
-    ev.status=ds.evact==='ack'?'Acknowledged':'Cleared';save();render();openEvent(ev);toast(`${ev.id} ${ev.status.toLowerCase()}`);return}
+    ev.status=ds.evact==='ack'?'Acknowledged':'Cleared';feed('EVENT',`${ev.id} ${ev.status.toLowerCase()}: ${ev.message}`,ev.id);save();render();openEvent(ev);toast(`${ev.id} ${ev.status.toLowerCase()}`);return}
   if(b.dataset.open){openDetail(b.dataset.open);return}
   if(b.dataset.new){openDrawer(createForm(b.dataset.new));bindCreate();return}
   if(b.dataset.demo){openDrawer(createForm('INC',{service:'Payments Gateway',title:'Payment releases failing for all APAC clients',desc:'Payments queue rejecting new instructions since 14:05. Multiple clients calling in.',impact:1,urgency:1,caller:'Arjun Menon'}));bindCreate();return}
@@ -45,11 +45,11 @@ document.addEventListener('submit',e=>{if(e.target.id==='createForm'){e.preventD
 $('#scrim').addEventListener('click',closeDrawer);
 $('#resetBtn').addEventListener('click',()=>{
   const b=$('#resetBtn');
-  if(b.dataset.confirm){endTour();store.del(KEY);DB=generate(Date.now());reindex();b.textContent='Reset demo data';delete b.dataset.confirm;closeDrawer();render();toast('Demo data reset');}
+  if(b.dataset.confirm){endTour();store.del(KEY);DB=generate(Date.now());reindex();seedFeed();renderFeed();b.textContent='Reset demo data';delete b.dataset.confirm;closeDrawer();render();toast('Demo data reset');}
   else{b.dataset.confirm='1';b.textContent='Click again to confirm reset';setTimeout(()=>{if(b.dataset.confirm){delete b.dataset.confirm;b.textContent='Reset demo data'}},4000)}
 });
 window.addEventListener('hashchange',route);
 
-load();route();
+load();startSimulation();route();
 /* After a refresh: carry on with the walkthrough, or reopen the record that was open. */
 if(!resumeTour()){const o=sess.get(KEY+'-open');if(o&&get(o))openDetail(o)}

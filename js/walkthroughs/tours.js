@@ -328,11 +328,11 @@ function toursDone(){try{return JSON.parse(store.get(KEY+'-tours')||'[]')}catch(
 function viewWalkthroughs(){
   const dn=toursDone();
   return `<div class="pagehead"><div><span class="eyebrow">Guided walkthroughs</span><h1>Learn a scenario by doing it</h1><p>Pick a scenario. A coach panel explains each step, highlights where to click and moves on once you’ve done it. Use <b>Do it for me</b> to watch a step happen. Walkthroughs add records to the demo data, and <b>Reset demo data</b> starts clean.</p></div>
-    <div class="tag" style="align-self:flex-end">${dn.length} of ${TOURS.length} completed</div></div>
+    <div class="wt-score" style="align-self:flex-end"><span><b>${dn.length}</b> of ${TOURS.length} walkthroughs completed</span><span class="wt-meter" aria-hidden="true"><i style="width:${(dn.length/TOURS.length*100).toFixed(0)}%"></i></span></div></div>
   ${TOUR_GROUPS.map(([g,d,ids])=>`<section class="section"><div class="grouph"><h2>${g}</h2><p>${d}</p></div><div class="cards">${ids.map(id=>{const w=TOURS.find(t=>t.id===id);const ok=dn.includes(id);
     return `<div class="card wt"><div class="meta"><span><b>${w.steps.length}</b> steps</span><span>about <b>${w.mins}</b> min</span>${ok?'<span class="pill st-done">Completed</span>':''}</div><h3>${esc(w.title)}</h3><p>${esc(w.story)}</p>
     <div class="meta"><span>Role: <b>${esc(w.role)}</b></span></div><div class="kpis">${w.modules.map(m=>`<span class="tag">${esc(m)}</span>`).join('')}</div>
-    <div class="foot"><span></span><button class="btn primary" data-tourstart="${id}">${ok?'Run again':'Start walkthrough'}</button></div></div>`}).join('')}</div></section>`).join('')}
+    ${cardChecklist(w,ok)}<div class="foot"><span></span><button class="btn primary" data-tourstart="${id}">${ok?'Run again':'Start walkthrough'}</button></div></div>`}).join('')}</div></section>`).join('')}
   <p class="muted" style="font-size:12px;max-width:80ch">Steps follow ITIL 4 practice guidance and the Knowledge-Centered Service (KCS) Solve Loop: capture, structure, reuse, improve.</p>`;
 }
 

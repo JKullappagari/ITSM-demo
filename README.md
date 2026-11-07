@@ -10,8 +10,8 @@ Everything runs in the browser. There is no server and no database: sample data 
 
 | Area | What it demonstrates |
 | --- | --- |
-| Service Desk | Log and work incidents, major incidents, problems, changes, requests and releases. Impact × urgency priority, SLA clocks, lifecycle steppers, linked records, replies to the caller, reassignment and escalation. **Known error lookup**: matching workarounds appear as you log an incident, and any open incident can search the KEDB and apply one |
-| Walkthroughs | 17 guided scenarios. A coach panel explains each step, highlights where to click and moves on once the step is done |
+| Service Desk | Log and work incidents, major incidents, problems, changes, requests and releases. Impact × urgency priority, **live SLA countdowns** with a progress bar that turns amber at risk and red on breach, lifecycle steppers, linked records, replies to the caller, reassignment and escalation. **Known error lookup**: matching workarounds appear as you log an incident, and any open incident can search the KEDB and apply one |
+| Walkthroughs | 17 guided scenarios. A coach panel explains each step, highlights where to click and moves on once the step is done. Each scenario has a **step checklist** that ticks itself off as you work, in the coach panel and on its card |
 | Service catalogue | Requestable items with targets, approval rules and fulfilment tasks |
 | Problems & KEDB | Problem register, known error database, and trend detection that suggests problems from repeat incidents |
 | Changes & releases | Standard, normal and emergency paths compared. Standard changes are scheduled as soon as they are raised; normal changes get a **risk assessment** questionnaire and **CAB votes** before the decision. The CAB agenda, a 14-day change calendar and the release pipeline |
@@ -21,6 +21,19 @@ Everything runs in the browser. There is no server and no database: sample data 
 | Improvement register | Continual improvement: value against effort, a lifecycle from idea to measured benefit, links back to post-incident reviews |
 | Processes | 17 practices with their stages, KPIs and how they connect |
 | Management reports | 16 report tabs, including **cost of downtime** with live counters, service levels, satisfaction, suppliers, continuity and improvement |
+| Activity log | A **live system log** along the bottom of the screen. Every action prints a timestamped line (`[14:32:10] CHANGE: CHG0007880 status changed to Implementing`), alongside background activity such as health checks, backups and discovery scans. Click it to see the history and open any record from it |
+
+### How the modules affect each other
+
+Actions in one module carry through to the others, the way they would in a real service desk:
+
+| You do this | And this follows |
+| --- | --- |
+| A normal or emergency change **fails or is backed out** | A critical alert in Event monitoring and three incidents on the same service, linked to the change. The change counts as having caused incidents in the change report |
+| A **high-risk** change is implemented successfully | A latency warning appears on the configuration item and clears on its own a minute later if the service settles |
+| A change raised to fix a problem is implemented successfully | The problem is resolved, its known error is marked fixed, and the incidents still open against it are resolved |
+| A problem reaches **Known error** | It appears at once in the known error database, marked **New**, and is offered to the desk as people log matching incidents |
+| An open incident nears or passes its SLA | The activity log reports it as at risk, then breached |
 
 ### Walkthroughs
 
@@ -53,6 +66,7 @@ js/views/*.js              one file per screen, plus costs.js (cost model) and d
 js/records.js              record drawer: create forms, detail view, lifecycle actions
 js/records-extras.js       request tasks, replies, assignment, KCS knowledge form, swarming
 js/records-depth.js        known error lookup, change risk assessment, CAB votes, CI incident history
+js/simulation.js           activity log, ripple effects between modules, live SLA countdowns, step checklists
 js/walkthroughs/engine.js  coach panel, highlight ring, auto-advance, "Do it for me"
 js/walkthroughs/tours*.js  the scenarios
 scripts/build.mjs          bundles everything into dist/index.html

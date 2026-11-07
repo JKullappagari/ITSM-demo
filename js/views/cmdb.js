@@ -151,5 +151,5 @@ document.addEventListener('click',e=>{
     if(d.astact==='repair'){a.status='In repair';a.location='Brightdesk repair centre';a.history.push({t:now,text:'Sent for repair'})}
     if(d.astact==='return'){a.status='In stock';a.user='';a.req=null;a.location='Singapore office store';a.history.push({t:now,text:'Wiped, re-imaged and returned to stock'})}
     if(d.astact==='retire'){a.status='Retired';a.location='Disposed';a.history.push({t:now,text:'Retired and securely wiped'})}
-    save();render();openAsset(a);toast(`${a.tag} updated`);}
+    feed('CMDB',`Asset ${a.tag} status changed to '${a.status}'`,a.id);save();render();openAsset(a);toast(`${a.tag} updated`);}
 });

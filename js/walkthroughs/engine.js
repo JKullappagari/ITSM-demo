@@ -7,7 +7,7 @@ function startTour(id){
   endTour();
   TOUR={def,i:0,ctx:{since:Date.now()},done:false,back:false,min:false,scrolled:false,hasT:null};
   try{if(def.setup)def.setup(TOUR.ctx)}catch(e){console.error(e)}
-  save();document.body.classList.add('touring');$('#coach').hidden=false;
+  feed('WALKTHROUGH',`Started: ${def.title}`);save();document.body.classList.add('touring');$('#coach').hidden=false;
   tourTimer=setInterval(tick,250);enterStep(0,false);
 }
 function tourSave(){if(TOUR&&!TOUR.finished)store.set(KEY+'-tour',JSON.stringify({id:TOUR.def.id,i:TOUR.i,ctx:TOUR.ctx,min:TOUR.min}));else store.del(KEY+'-tour')}
@@ -22,7 +22,7 @@ function resumeTour(){
 function enterStep(i,back){
   const T=TOUR;T.i=i;T.done=false;T.back=!!back;T.scrolled=false;T.hasT=null;clearTimeout(T.adv);
   const s=T.def.steps[i];try{if(s.enter)s.enter(T.ctx)}catch(e){console.error(e)}
-  renderCoach();tourSave();setTimeout(tick,100);
+  tourProgSave(T.def.id,i);renderCoach();tourSave();setTimeout(tick,100);
 }
 function curStep(){return TOUR.def.steps[TOUR.i]}
 function tourTarget(s){
@@ -58,13 +58,13 @@ function renderCoach(){
     else state=`<div class="coach-state"><span class="pd"></span>Waiting for you to ${esc(s.wait||'do the highlighted action')}</div>`;
   }
   co.innerHTML=`<div class="coach-top"><span class="eyebrow">${esc(T.def.short)} · step ${T.i+1} of ${n}</span><button class="x" data-tour="min" aria-label="Minimise walkthrough">–</button><button class="x" data-tour="exit" aria-label="Exit walkthrough">×</button></div>
-    <div class="coach-prog"><i style="width:${((T.i+(T.done||s.info?1:0))/n*100).toFixed(1)}%"></i></div>
+    <div class="coach-prog"><i style="width:${((T.i+(T.done||s.info?1:0))/n*100).toFixed(1)}%"></i></div>${coachList(T)}
     <h3>${esc(s.t)}</h3><div class="coach-body">${body}</div>${s.why?`<div class="coach-why"><b>Why it matters:</b> ${s.why}</div>`:''}${state}
     <div class="actions"><button class="btn" data-tour="back" ${T.i===0?'disabled':''}>Back</button>${s.show&&!T.done&&!s.info?'<button class="btn" data-tour="show">Do it for me</button>':''}<button class="btn primary" data-tour="next" ${s.info||T.done?'':'disabled'}>${T.i===n-1?'Finish':'Next'}</button></div>`;
 }
 function finishTour(){
   const T=TOUR;const d=toursDone();if(!d.includes(T.def.id)){d.push(T.def.id);store.set(KEY+'-tours',JSON.stringify(d))}
-  T.finished=true;tourSave();clearInterval(tourTimer);$('#tourRing').hidden=true;const co=$('#coach');co.classList.remove('min','left');
+  T.finished=true;tourSave();tourProgSave(T.def.id,T.def.steps.length);feed('WALKTHROUGH',`Completed: ${T.def.title}`);save();clearInterval(tourTimer);$('#tourRing').hidden=true;const co=$('#coach');co.classList.remove('min','left');
   const nextT=TOURS.find(t=>!d.includes(t.id));
   co.innerHTML=`<div class="coach-top"><span class="eyebrow">Walkthrough complete</span><button class="x" data-tour="exit" aria-label="Close">×</button></div><div class="coach-prog"><i style="width:100%"></i></div>
     <h3>${esc(T.def.title)}</h3><div class="coach-body">You worked through all ${T.def.steps.length} steps. The records you created stay in the demo data, so you can open them again from the Service Desk.</div>
