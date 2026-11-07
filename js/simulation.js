@@ -69,9 +69,11 @@ function rippleChange(t,now){
       feed('EVENT',`Warning on ${ciName}: p95 response time above 2 s after ${t.id}`,ev.id);msg=`${t.id} implemented: latency warning raised on ${ciName}`;
     }else{t.notes.push({t:now+1,who:'Event management',text:`Post-implementation health check passed on ${ciName}`});feed('MONITOR',`Post-change health check passed on ${ciName} (${t.id})`,t.id)}
     // The fix is in: problems this change was raised for are resolved, and so are their incidents.
+    const fixed=[];
     t.links.map(get).filter(p=>p&&p.type==='PRB'&&isOpen(p)).forEach(p=>{p.status='Resolved';p.resolved=now;p.notes.push({t:now+2,who:'Problem Manager',text:`Permanent fix implemented by ${t.id}. Status changed to Resolved`});feed('PROBLEM',`${p.id} resolved by ${t.id}`,p.id);
-      if(p.knownError)feed('KEDB',`${keId(p)} marked as fixed`,p.id);const n=rippleProblem(p,now+3);if(n)msg=`${t.id} fixed ${p.id}: ${n} linked incident${n>1?'s':''} resolved`;else msg=msg||`${t.id} fixed ${p.id}`});
-    return msg;
+      if(p.knownError)feed('KEDB',`${keId(p)} marked as fixed`,p.id);const n=rippleProblem(p,now+3);fixed.push(`${p.id} resolved${n?` with ${n} linked incident${n>1?'s':''}`:''}`)});
+    // One message that says everything the change set off.
+    return fixed.length?`${t.id} implemented: ${fixed.join(', ')}${msg?`; latency warning on ${ciName}`:''}`:msg;
   }
   // Failed or backed out: the service degrades and users start calling.
   const ev=seedEvent({ci:ci&&ci.id,service:t.service,sev:'Critical',message:`Error rate above 5% during ${t.id}`,source:'Application performance',count:9,chg:t.id,status:'Incident raised'});

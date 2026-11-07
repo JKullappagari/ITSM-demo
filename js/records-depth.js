@@ -2,27 +2,32 @@
 "use strict";
 
 /* ---------- known error lookup (KEDB) ---------- */
-const KE_STOP=new Set(['the','and','for','with','not','are','from','after','every','on','in','to','of','a','an','is','users','user']);
+const KE_STOP=new Set(['the','and','for','with','not','are','from','after','every','on','in','to','of','a','an','is','users','user',
+  'above','below','over','under','error','errors','issue','issues','problem','during','when','recurring','cause','major','incident']);
 /* Crude stemming: 'disconnecting' and 'disconnects' both become 'discon'. */
 const keStem=w=>w.slice(0,6);
 const keWords=s=>String(s||'').toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2&&!KE_STOP.has(w));
-/* Open known errors ranked by word overlap with the query, with a boost for the same service.
-   When the service is already known it only boosts; its name is not matched as symptom text. */
-function keMatches(q,service,limit){
-  const qs=keWords(q);
+/* Open known errors ranked by word overlap with the query. A word in the known error's symptom scores 2,
+   a word only in its workaround or root cause scores 1, and the same service adds 1.
+   With a service (an incident), a match needs 3: a symptom word on the same service, or two symptom words.
+   Without one (free search), the service name counts as text and 2 is enough. A search the user types
+   (typed) also needs only 2, so one symptom word is enough. */
+function keMatches(q,service,limit,typed){
+  const qs=[...new Set(keWords(q).map(keStem))];
   return DB.items.filter(p=>p.type==='PRB'&&p.knownError&&isOpen(p)).map(p=>{
-    const hay=new Set(keWords([p.title,p.workaround,p.rootCause,service?'':p.service].join(' ')).map(keStem));
-    let s=new Set(qs.map(keStem).filter(w=>hay.has(w))).size*2;
+    const sym=new Set(keWords(p.title+(service?'':' '+p.service)).map(keStem));
+    const rest=new Set(keWords(p.workaround+' '+(p.rootCause||'')).map(keStem));
+    let s=qs.reduce((n,w)=>n+(sym.has(w)?2:rest.has(w)?1:0),0);
     if(service&&p.service===service)s+=qs.length?1:2;
     return{p,s};
-  }).filter(x=>qs.length?x.s>=2:x.s>0).sort((a,b)=>b.s-a.s||b.p.created-a.p.created).slice(0,limit||5).map(x=>x.p);
+  }).filter(x=>qs.length?x.s>=(service&&!typed?3:2):x.s>0).sort((a,b)=>b.s-a.s||b.p.created-a.p.created).slice(0,limit||5).map(x=>x.p);
 }
 const keTitle=p=>{const t=kbClean(p.title);return t.charAt(0).toUpperCase()+t.slice(1)};
 function keRow(p,btn){
   return `<div class="li" style="cursor:default"><span class="tag ke">${keId(p)}</span><div style="min-width:0"><div class="t-title">${esc(keTitle(p))}</div><div class="t-meta">${esc(p.service)} · <b>Workaround:</b> ${esc(p.workaround)}</div></div><span class="actions"><button class="btn ghost" data-open="${p.id}">Open</button>${btn}</span></div>`;
 }
-function keResults(q,service,applyBtn){
-  const m=keMatches(q,service,6);
+function keResults(q,service,applyBtn,typed){
+  const m=keMatches(q,service,6,typed);
   return m.length?`<div class="list">${m.map(p=>keRow(p,applyBtn(p))).join('')}</div>`:`<div class="empty" style="padding:12px">No open known errors match${q?` “${esc(q)}”`:''}. If this keeps happening, raise a problem.</div>`;
 }
 /* Section on an open incident: search the KEDB and apply a workaround. */
@@ -132,7 +137,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('input',e=>{
   const id=e.target.id;
   if(id==='keQ'){const q=e.target.value,svc=e.target.dataset.svc;const t=get($('#drawer').dataset.id);const onInc=t&&t.type==='INC'&&$('#drawer').dataset.view==='rec';
-    $('#keRes').innerHTML=!q.trim()&&!onInc?keAll():keResults(q,svc,p=>onInc?`<button class="btn" data-act="ke:${p.id}">Apply workaround</button>`:'');clampTitles($('#keRes'))}
+    $('#keRes').innerHTML=!q.trim()&&!onInc?keAll():keResults(q,svc,p=>onInc?`<button class="btn" data-act="ke:${p.id}">Apply workaround</button>`:'',true);clampTitles($('#keRes'))}
   if(id==='f-title')keHint();
 });
 document.addEventListener('change',e=>{
