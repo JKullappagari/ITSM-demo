@@ -10,7 +10,7 @@ function feed(mod,msg,id,ambient){
   if(!DB)return;DB.feed=DB.feed||[];
   DB.feed.push({t:Date.now(),m:mod,x:msg,id:id||null,a:!!ambient});
   while(DB.feed.length>FEED_MAX){const i=DB.feed.findIndex(f=>f.a);DB.feed.splice(i>=0?i:0,1)}
-  renderFeed(true);
+  renderFeed(true);updateNav();
 }
 /* Logs the work notes an action added to a record. */
 function feedNotes(t,from){t.notes.slice(from).forEach(n=>feed(FEED_MOD[t.type]||'SYSTEM',`${t.id} ${n.text.charAt(0).toLowerCase()+n.text.slice(1)}`,t.id))}
@@ -140,5 +140,5 @@ function startSimulation(){
   mountFeed();seedFeed();renderFeed();slaWatch();
   setInterval(slaTick,1000);setInterval(slaWatch,5000);
   let next=Date.now()+12e3;
-  setInterval(()=>{if(document.hidden||Date.now()<next)return;next=Date.now()+28e3+Math.random()*22e3;ambientLine();save()},2000);
+  setInterval(()=>{if(document.hidden||Date.now()<next)return;next=Date.now()+28e3+Math.random()*22e3;if(Math.random()<.35)baselineAlert();else{ambientLine();save()}},2000);
 }

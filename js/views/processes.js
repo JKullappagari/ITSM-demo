@@ -38,6 +38,6 @@ function viewProcesses(){
   ${PROC_GROUPS.map(([g,d,keys])=>`<div class="grouph"><h2 style="font-size:20px">${g}</h2><p>${d}</p></div>
   ${keys.map(k=>PROCS.find(p=>p.k===k)).map(p=>`<section class="panel proc"><div class="about"><h2>${p.name}</h2><p>${p.goal}</p><div class="kpis">${p.kpi.map(k=>`<span class="tag">${k}</span>`).join('')}</div>
       <div class="actions" style="margin-top:6px">${TOUR_OF[p.k]?`<button class="btn primary" data-tourstart="${TOUR_OF[p.k]}">Guided walkthrough</button>`:''}${p.go?`<a class="btn" href="#${p.go}">${p.label}</a>`:p.k==='MI'?'<button class="btn" data-demo="1">Try it: log a P1</button>':`<button class="btn" data-new="${p.k}">Try it: log a ${TYPES[p.k].name.toLowerCase()}</button>`}</div></div>
-    <ol class="flow">${p.steps.map(([a,b])=>`<li><b>${a}</b><span>${b}</span></li>`).join('')}</ol></section>`).join('')}`).join('')}`;
+    <div class="flowwrap"><ol class="flow" data-proc="${p.k}">${p.steps.map(([a,b],i)=>`<li tabindex="0" data-i="${i}"><b>${a}</b><span>${b}</span></li>`).join('')}</ol>${PROC_ROLES[p.k]?`<div class="flow-note">Point at a stage to see who owns it${PROC_NOW[p.k]?' and how many records are at that stage now':''}.</div>`:''}</div></section>`).join('')}`).join('')}`;
 }
 

@@ -34,6 +34,12 @@ Actions in one module carry through to the others, the way they would in a real 
 | A change raised to fix a problem is implemented successfully | The problem is resolved, its known error is marked fixed, and the incidents still open against it are resolved |
 | A problem reaches **Known error** | It appears at once in the known error database, marked **New**, and is offered to the desk as people log matching incidents |
 | An open incident nears or passes its SLA | The activity log reports it as at risk, then breached |
+| An open incident matches a published known error | Its Service Desk row shows a badge such as **2 matching known error workarounds found** |
+| A change moves to **Implementing** | Its configuration item shows **Maintenance window active** on the service map, in the CI register and on the CI record until the change is complete |
+| You raise an incident from an alert | The form is filled in from the alert: service, configuration item, severity as priority, message, occurrences and first-seen time |
+| A background baseline check fails (every so often, paused during walkthroughs) | A warning appears in Event monitoring and its sidebar badge glows |
+
+The sidebar shows live counts for open P1/P2 incidents, changes awaiting CAB and open alerts. On the **Processes** page, pointing at a stage shows who owns it and which records are at that stage now, and highlights the other stages owned by the same role.
 
 ### Walkthroughs
 
@@ -67,6 +73,7 @@ js/records.js              record drawer: create forms, detail view, lifecycle a
 js/records-extras.js       request tasks, replies, assignment, KCS knowledge form, swarming
 js/records-depth.js        known error lookup, change risk assessment, CAB votes, CI incident history
 js/simulation.js           activity log, ripple effects between modules, live SLA countdowns, step checklists
+js/sim-extras.js           maintenance windows, sidebar badges, background alerts, process stage hover
 js/walkthroughs/engine.js  coach panel, highlight ring, auto-advance, "Do it for me"
 js/walkthroughs/tours*.js  the scenarios
 scripts/build.mjs          bundles everything into dist/index.html

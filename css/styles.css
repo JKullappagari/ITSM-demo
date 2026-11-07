@@ -446,3 +446,30 @@ li.on .box{background:var(--ok);border-color:var(--ok);color:#fff}
 .wt-meter i{display:block;height:100%;background:var(--ok)}
 .wt-score{display:flex;flex-direction:column;gap:6px;font-size:13px;align-items:flex-end}
 .wt-score .wt-meter{width:180px;height:8px}
+
+/* sidebar alert badges */
+.nav a{white-space:nowrap}
+.navbadge{margin-left:auto;min-width:18px;padding:1px 5px;border-radius:9px;background:var(--crit);color:#fff;font-size:11px;font-weight:600;text-align:center;line-height:1.5}
+.navbadge[hidden]{display:none}
+.nav a[data-view="changes"] .navbadge{background:var(--info)}
+.navbadge.bump{animation:navBump 2.4s ease-out}
+@keyframes navBump{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--amber) 85%,transparent);transform:scale(1.25)}20%{transform:scale(1)}100%{box-shadow:0 0 0 10px transparent}}
+@media (prefers-reduced-motion:reduce){.navbadge.bump{animation:none}}
+
+/* maintenance windows and known error badges */
+.tag.maint{background:var(--warn-soft);color:var(--warn);border-color:var(--warn);font-size:10.5px;white-space:nowrap}
+.cinode .tag.maint{margin-top:4px;align-self:flex-start}
+td .tag.maint{display:inline-block;margin-top:4px}
+.kebadge{font-size:10.5px;white-space:normal;display:inline-block;max-width:28ch;margin-top:3px;line-height:1.35}
+
+/* processes: stage hover */
+.flowwrap{display:flex;flex-direction:column;gap:8px;min-width:0}
+.flow[data-proc] li{cursor:default;transition:border-color .12s,background .12s,opacity .12s}
+.flow[data-proc]:has(li.hot) li{opacity:.55}
+.flow[data-proc] li.hot,.flow[data-proc] li.same{opacity:1}
+.flow[data-proc] li.hot{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 1px var(--accent)}
+.flow[data-proc] li.same{border-color:var(--accent);border-style:dashed}
+.flow[data-proc] li:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.flow-note{font-size:12.5px;color:var(--muted);min-height:20px}
+.flow-note b{color:var(--ink);font-weight:600}
+@media (prefers-reduced-motion:reduce){.flow[data-proc] li{transition:none}}

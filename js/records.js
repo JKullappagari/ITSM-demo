@@ -179,7 +179,7 @@ function openDetail(id){
     ${MI_FLOW.indexOf(t.majorStage)<MI_FLOW.length-1?`<div class="actions"><button class="btn danger" data-act="mi">Advance to: ${MI_FLOW[MI_FLOW.indexOf(t.majorStage)+1]}</button></div>`:`<div class="actions"><span class="muted" style="font-size:13px;align-self:center">Post-incident review complete.</span>${csiFromBtn(t)}</div>`}</div>`:'';
   const ke=t.type==='PRB'&&t.knownError&&t.workaround?`<div class="calc"><span class="tag ke">Known error</span><span><b>Workaround:</b> ${esc(t.workaround)}</span></div>`:'';
   const links=t.links.map(get).filter(Boolean);
-  openDrawer(`<div class="dhead"><div><span class="eyebrow mono" style="letter-spacing:.02em">${t.id} ${t.major?'<span class="tag mi">Major incident</span>':''}</span><h2>${esc(t.title)}</h2><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${pill(t)}${t.escalated?'<span class="tag mi">Escalated</span>':''}${t.reopened?'<span class="tag">Reopened</span>':''}</div></div><button class="x" data-close="1" aria-label="Close">×</button></div>
+  openDrawer(`<div class="dhead"><div><span class="eyebrow mono" style="letter-spacing:.02em">${t.id} ${t.major?'<span class="tag mi">Major incident</span>':''}</span><h2>${esc(t.title)}</h2><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${pill(t)}${t.escalated?'<span class="tag mi">Escalated</span>':''}${keBadge(t)}${t.reopened?'<span class="tag">Reopened</span>':''}</div></div><button class="x" data-close="1" aria-label="Close">×</button></div>
     <div class="section"><span class="eyebrow">${TYPES[t.type].name} lifecycle</span>${stepperHtml(FLOW[t.type],t.status)}</div>
     ${acts.length?`<div class="actions">${acts.map(([k,l,c,dis])=>`<button class="btn ${c}" data-act="${k}" ${dis?'disabled':''}>${esc(l)}</button>`).join('')}</div>`:''}
     ${prbInputs(t)}${riskBox(t)}${cabBox(t)}${mi}${ke}${reqTasks(t)}
@@ -229,7 +229,7 @@ function act(id,k){
   else if(k==='reopen'){t.status='In Progress';t.resolved=null;t.reopened=(t.reopened||0)+1;log('Reopened: caller confirms the issue is not fixed')}
   else if(k.startsWith('kb:')){const a=get(k.slice(3));if(a){t.kb=a.id;a.uses++;log(`Applied knowledge article ${a.id}: ${a.title}`)}}
   else if(k==='note'){const tx=$('#noteText').value.trim();if(!tx)return;log(tx)}
-  feedNotes(t,n0);
+  feedNotes(t,n0);maintFeed(t,s0);
   /* Ripple effects into other modules */
   if(k.startsWith('out:'))rip=rippleChange(t,now);
   if(t.type==='PRB'&&s0!==t.status&&t.status==='Resolved'){const n=rippleProblem(t,now);if(n)rip=`${t.id} resolved: ${n} linked incident${n>1?'s':''} resolved too`}

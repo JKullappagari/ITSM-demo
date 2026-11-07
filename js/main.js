@@ -17,7 +17,7 @@ document.addEventListener('click',e=>{
   if(ds.cmcls){ui2.cmdb.cls=ds.cmcls;render();return}
   if(ds.kbact){const k=get($('#drawer').dataset.id);if(ds.kbact==='publish'){k.status='Published';k.updated=Date.now();feed('KB',`${k.id} published: ${k.title}`,k.id);toast(`${k.id} published`)}else{k.helpful=Math.min(100,k.helpful+1);k.views++;toast('Thanks, vote recorded')}save();render();openKB(k);return}
   if(ds.evact){const ev=get($('#drawer').dataset.id);
-    if(ds.evact==='raise'){const sevI=ev.sev==='Critical'?1:2;const ci=get(ev.ci);openDrawer(createForm('INC',{service:ev.service,title:`${ev.message} on ${ci?ci.name:ev.service}`,desc:`Raised from monitoring event ${ev.id} (${ev.source}).`,impact:sevI,urgency:sevI,caller:'Event management',evt:ev.id}));bindCreate();return}
+    if(ds.evact==='raise'){const sevI=ev.sev==='Critical'?1:2;const ci=get(ev.ci);openDrawer(createForm('INC',{service:ev.service,title:`${ev.message} on ${ci?ci.name:ev.service}`,desc:`Raised from monitoring event ${ev.id} (${ev.source}).\nConfiguration item: ${ci?ci.name+' ('+ci.cls+', '+ci.env+')':'unknown'}\nAlert: ${ev.sev} – ${ev.message}\nOccurrences: ${ev.count} since ${fmtDT(ev.time)}${ev.chg?'\nDuring change: '+ev.chg:''}`,impact:sevI,urgency:sevI,caller:'Event management',evt:ev.id}));bindCreate();return}
     ev.status=ds.evact==='ack'?'Acknowledged':'Cleared';feed('EVENT',`${ev.id} ${ev.status.toLowerCase()}: ${ev.message}`,ev.id);save();render();openEvent(ev);toast(`${ev.id} ${ev.status.toLowerCase()}`);return}
   if(b.dataset.open){openDetail(b.dataset.open);return}
   if(b.dataset.new){openDrawer(createForm(b.dataset.new));bindCreate();return}
