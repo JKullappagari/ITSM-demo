@@ -225,6 +225,8 @@ function generate(now){
       result:s==='Data Warehouse'?'Failed':pick(['Passed','Passed','Passed','Passed with actions']),achieved:tier==='Tier 1'?pick(['1 h 20 m','1 h 45 m','55 m']):pick(['3 h 10 m','5 h 40 m','11 h'])}});
   BCP.find(b=>b.service==='Trade Matching').lastTest=now-200*DAY;BCP.find(b=>b.service==='Trade Matching').nextTest=now-18*DAY;
 
-  return {created:now,seq,items:T,ci:CI,kb:KB,events:EV,bcp:BCP,assets:genAssets(now,T),csi:genCSI(now)};
+  const D={created:now,seq,items:T,ci:CI,kb:KB,events:EV,bcp:BCP,assets:genAssets(now,T),csi:genCSI(now)};
+  extendData(D,now);  // client platform and AI governance (js/views/platform.js, js/views/ai.js)
+  return D;
 }
 

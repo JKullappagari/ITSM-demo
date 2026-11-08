@@ -13,13 +13,15 @@ Everything runs in the browser. There is no server and no database: sample data 
 | Area | What it demonstrates |
 | --- | --- |
 | Service Desk | Log and work incidents, major incidents, problems, changes, requests and releases. Impact × urgency priority, **live SLA countdowns** with a progress bar that turns amber at risk and red on breach, lifecycle steppers, linked records, replies to the caller, reassignment and escalation. **Known error lookup**: matching workarounds appear as you log an incident, and any open incident can search the KEDB and apply one |
-| Walkthroughs | 17 guided scenarios. A coach panel explains each step, highlights where to click and moves on once the step is done. Each scenario has a **step checklist** that ticks itself off as you work, in the coach panel and on its card |
+| Walkthroughs | 21 guided scenarios. A coach panel explains each step, highlights where to click and moves on once the step is done. Each scenario has a **step checklist** that ticks itself off as you work, in the coach panel and on its card |
 | Service catalogue | Requestable items with targets, approval rules and fulfilment tasks |
 | Problems & KEDB | Problem register, known error database, and trend detection that suggests problems from repeat incidents |
 | Changes & releases | Standard, normal and emergency paths compared. Standard changes are scheduled as soon as they are raised; normal changes get a **risk assessment** questionnaire and **CAB votes** before the decision. The CAB agenda, a 14-day change calendar and the release pipeline |
 | Knowledge base | Self-help, runbooks and known errors in the KCS structure (issue, environment, resolution, cause) with a review step before publishing |
 | Event monitoring | Alerts with de-duplication, acknowledge or clear, and raising an incident from an event |
 | CMDB & assets | Service dependency map with **failure simulation**, configuration item register, laptop asset register (In stock → Allocated → In use), hardware stock and licence compliance. Each configuration item shows its **incident and change history** |
+| Client platform | Software as a service for external clients. Meridian runs a fictional platform, *Meridian Flow*, for six fictional client firms, each with a contract tier, a version and a configuration register. A **quarterly upgrade** rolls out client by client: test environment, client testing, sign-off, then production in the client's own window. It includes regressions in custom workflows, deferrals and a version support policy. **Client change requests** are either pre-approved configuration changes or quoted custom workflow changes that need the client's sign-off before CAB |
+| AI governance | An **AI agent register** records the owner, autonomy, risk tier, model and version of every agent. A risk questionnaire sets the tier, ten governance controls gate approval, and going live needs a change record. A **kill switch** suspends an agent, and every model or prompt version is tied to its change record |
 | Improvement register | Continual improvement: value against effort, a lifecycle from idea to measured benefit, links back to post-incident reviews |
 | Processes | 17 practices with their stages, KPIs and how they connect |
 | Management reports | 16 report tabs, including **cost of downtime** with live counters, service levels, satisfaction, suppliers, continuity and improvement |
@@ -40,6 +42,12 @@ Actions in one module carry through to the others, the way they would in a real 
 | A change moves to **Implementing** | Its configuration item shows **Maintenance window active** on the service map, in the CI register and on the CI record until the change is complete |
 | You raise an incident from an alert | The form is filled in from the alert: service, configuration item, severity as priority, message, occurrences and first-seen time |
 | A background baseline check fails (every so often, paused during walkthroughs) | A warning appears in Event monitoring and its sidebar badge glows |
+| A client starts testing an upgrade and one of its custom workflows fails on the new version | A regression shows on the rollout, and the client cannot sign off until a fix, raised as a client change, is implemented |
+| A client change is implemented | It is added to the client's configuration register. Custom workflows are marked for re-testing at every upgrade |
+| A client is upgraded in production | Its version and support status change on the client platform page and the client record |
+| An AI agent's guardrails block an action | A critical alert appears in Event monitoring, with the agent as the configuration item |
+| A change to a live AI agent is implemented successfully | A new agent version is recorded under that change. Versions deployed without a change record are flagged on the register |
+| An AI agent is suspended with its kill switch | It can be resumed only on a version that has a change record |
 
 The sidebar shows live counts for open P1/P2 incidents, changes awaiting CAB and open alerts. On the **Processes** page, pointing at a stage shows who owns it and which records are at that stage now, and highlights the other stages owned by the same role.
 
@@ -51,6 +59,8 @@ The sidebar shows live counts for open P1/P2 incidents, changes awaiting CAB and
 | Requests and knowledge | New starter with approval and tasks · Knowledge article from a client reply · Laptop lifecycle from request to desk |
 | Problem, change and release | Problem to known error to fix · Normal change through CAB · Standard vs normal change · Standard change · Release with early life support · Capacity warning |
 | Management | Monthly service review · Log, prioritise and deliver an improvement |
+| Client platform (SaaS) | Quarterly platform upgrade across six clients · Client change request: configuration or custom workflow? |
+| AI governance | Approve a new AI agent: from proposal to live · An AI agent misbehaves: kill switch, roll back, fix through change |
 
 ## Running it
 
@@ -71,6 +81,8 @@ js/data.js                 seeded sample data generator
 js/charts.js               SVG charts, bars, tiles, sparklines
 js/router.js               hash routing (#desk, #changes, #dashboard-costs, ...)
 js/views/*.js              one file per screen, plus costs.js (cost model) and dashboard.js (reports)
+js/views/platform.js       client platform: clients, quarterly upgrade rollout, client change requests
+js/views/ai.js             AI governance: agent register, risk tiers, controls, kill switch, versions
 js/records.js              record drawer: create forms, detail view, lifecycle actions
 js/records-extras.js       request tasks, replies, assignment, KCS knowledge form, swarming
 js/records-depth.js        known error lookup, change risk assessment, CAB votes, CI incident history

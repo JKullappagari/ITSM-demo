@@ -8,7 +8,7 @@ function closeDrawer(){openSave(null);$('#drawer').hidden=true;$('#scrim').hidde
 function createForm(type,preset){
   preset=preset||{};
   const types=['INC','PRB','CHG','REQ','REL'];
-  const svcOpts=sel=>SVC.map(s=>`<option ${s===sel?'selected':''}>${esc(s)}</option>`).join('');
+  const svcOpts=sel=>(preset.client!=null?[FLOW_SVC]:SVC.concat(EXTRA_SVC)).map(s=>`<option ${s===sel?'selected':''}>${esc(s)}</option>`).join('');
   let body='';
   if(type==='INC'){
     const i=preset.impact||2,u=preset.urgency||2;
@@ -30,7 +30,7 @@ function createForm(type,preset){
   }else if(type==='CHG'){
     const dt=new Date(Date.now()+5*DAY);dt.setHours(20,0,0,0);
     const local=new Date(dt.getTime()-dt.getTimezoneOffset()*6e4).toISOString().slice(0,16);
-    body=`<div class="field"><label for="f-title">Change summary</label><input type="text" id="f-title" required value="${esc(preset.title||'')}" placeholder="e.g. Apply vendor patch 3.4.1 to payment workers"></div>
+    body=`${clientField(type,preset)}<div class="field"><label for="f-title">Change summary</label><input type="text" id="f-title" required value="${esc(preset.title||'')}" placeholder="e.g. Apply vendor patch 3.4.1 to payment workers"></div>
       <div class="row2"><div class="field"><label for="f-service">Service</label><select id="f-service">${svcOpts(preset.service)}</select></div>
       <div class="field"><label for="f-ctype">Change type</label><select id="f-ctype">${['Standard','Normal','Emergency'].map(c=>`<option ${c===(preset.changeType||'Normal')?'selected':''}>${c}</option>`).join('')}</select></div></div>
       <div class="row2"><div class="field"><label for="f-risk">Risk</label><select id="f-risk">${['Low','Medium','High'].map(c=>`<option ${c===(preset.risk||'Medium')?'selected':''}>${c}</option>`).join('')}</select></div>
@@ -52,7 +52,7 @@ function createForm(type,preset){
   }
   return `<div class="dhead"><div><span class="eyebrow">New record</span><h2>Log ${TYPES[type].name.toLowerCase()}</h2></div><button class="x" data-close="1" aria-label="Close">×</button></div>
     <div class="seg" role="group" aria-label="Record type">${types.map(k=>`<button type="button" data-ctype="${k}" aria-pressed="${k===type}">${TYPES[k].name}</button>`).join('')}</div>
-    <form id="createForm" data-type="${type}" ${preset.from?`data-from="${preset.from}"`:''} ${preset.evt?`data-evt="${preset.evt}"`:''} ${preset.ci?`data-ci="${preset.ci}"`:''}>${body}
+    <form id="createForm" data-type="${type}" ${preset.from?`data-from="${preset.from}"`:''} ${preset.evt?`data-evt="${preset.evt}"`:''} ${preset.ci?`data-ci="${preset.ci}"`:''} ${preset.fixFor?`data-fixfor="${preset.fixFor}" data-cfg="${preset.cfg}"`:''} ${preset.agent?`data-agent="${preset.agent}"`:''} ${preset.agentGoLive?'data-golive="1"':''}>${body}
       <div class="actions"><button class="btn primary" type="submit">Create ${TYPES[type].name.toLowerCase()}</button><button class="btn ghost" type="button" data-close="1">Cancel</button></div></form>`;
 }
 function updateCalc(){
@@ -61,7 +61,7 @@ function updateCalc(){
     pc.innerHTML=`<span class="eyebrow">Calculated priority</span><span class="big">${prioTag(p)}</span><span>Respond within <b>${RESP[p]}</b> · resolve within <b>${SLA[p]} h</b></span>${p==='P1'?'<span class="tag mi">Major incident candidate</span>':''}`;
     const mj=$('#f-major');if(mj&&p==='P1'&&!mj.dataset.touched)mj.checked=true;if(mj&&p!=='P1'&&!mj.dataset.touched)mj.checked=false;}
   const cn=$('#chgNote');
-  if(cn){const c=$('#f-ctype').value;cn.textContent=c==='Standard'?'Standard changes are pre-approved and low risk. Creating one from its template schedules it straight away: no assessment and no CAB.':c==='Emergency'?'Emergency changes go to the Emergency CAB (ECAB) for fast approval, usually to restore service.':'Normal changes are risk-assessed and approved at the weekly Change Advisory Board.'}
+  if(cn){const c=$('#f-ctype').value;cn.textContent=clientNote(c)||(c==='Standard'?'Standard changes are pre-approved and low risk. Creating one from its template schedules it straight away: no assessment and no CAB.':c==='Emergency'?'Emergency changes go to the Emergency CAB (ECAB) for fast approval, usually to restore service.':'Normal changes are risk-assessed and approved at the weekly Change Advisory Board.')}
   const rn=$('#reqNote');
   if(rn){const c=CATALOG.find(x=>x.name===$('#f-item').value);rn.innerHTML=`<span class="eyebrow">Fulfilment target</span><b class="mono">${c.target} h</b><span class="muted">${c.approval?'Needs line-manager approval first':'No approval needed'}</span>`}
 }
@@ -97,6 +97,7 @@ function submitCreate(form){
   if(form.dataset.ci)t.ci=form.dataset.ci;
   if(form.dataset.evt){const ev=get(form.dataset.evt);if(ev){ev.status='Incident raised';ev.inc=t.id;t.ci=ev.ci;t.events=[ev.id];t.notes.push({t:now,who:'Event management',text:`Raised from event ${ev.id}: ${ev.message}`})}}
   if(type==='INC'&&form.dataset.ke){const p=get(form.dataset.ke);if(p)applyKe(t,p,now+2000,'Service Desk')}
+  extOnCreate(t,form);
   links.forEach(id=>{const o=get(id);if(o&&o.links&&!o.links.includes(t.id))o.links.push(t.id)});
   DB.items.push(t);IDX.set(t.id,t);
   feed(FEED_MOD[type],`${t.id} logged: ${t.title}${t.priority?' ('+t.priority+')':''}`,t.id);feedNotes(t,1);save();
@@ -159,6 +160,8 @@ function openDetail(id){
   if(t.kind==='EVT')return openEvent(t);
   if(t.kind==='AST')return openAsset(t);
   if(t.kind==='CSI')return openCSI(t);
+  if(t.kind==='CLI')return openClient(t);
+  if(t.kind==='AGT')return openAgent(t);
   const s=slaOf(t);
   const facts=[];
   facts.push(['Type',typeLabel(t)],['Service',t.service]);
@@ -170,6 +173,7 @@ function openDetail(id){
   if(t.asset){const a=get(t.asset);if(a)facts.push(['Laptop asset',`<button class="linkchip" data-open="${a.id}">${a.tag} · ${a.status}</button>`])}
   if(t.type==='PRB')facts.push(['Root cause',t.rootCause||'Under investigation'],['Known error',t.knownError?'Yes':'No']);
   if(t.type==='REL')facts.push(['Deployment',fmtDT(t.planned)],['Changes included',t.links.filter(l=>l.startsWith('CHG')).length]);
+  saasFacts(t,facts);
   facts.push(['Assignment group',esc(t.group)],['Assigned to',esc(t.assignee||'Unassigned')],['Opened',fmtDT(t.created)]);
   if(t.resolved)facts.push([t.type==='REQ'?'Fulfilled':t.type==='CHG'?'Completed':'Resolved',fmtDT(t.resolved)]);
   if(t.type==='INC'&&costRate(t)>0)facts.push(['Downtime cost',costCell(t)]);
@@ -182,7 +186,7 @@ function openDetail(id){
   openDrawer(`<div class="dhead"><div><span class="eyebrow mono" style="letter-spacing:.02em">${t.id} ${t.major?'<span class="tag mi">Major incident</span>':''}</span><h2>${esc(t.title)}</h2><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${pill(t)}${t.escalated?'<span class="tag mi">Escalated</span>':''}${keBadge(t)}${t.reopened?'<span class="tag">Reopened</span>':''}</div></div><button class="x" data-close="1" aria-label="Close">×</button></div>
     <div class="section"><span class="eyebrow">${TYPES[t.type].name} lifecycle</span>${stepperHtml(FLOW[t.type],t.status)}</div>
     ${acts.length?`<div class="actions">${acts.map(([k,l,c,dis])=>`<button class="btn ${c}" data-act="${k}" ${dis?'disabled':''}>${esc(l)}</button>`).join('')}</div>`:''}
-    ${prbInputs(t)}${riskBox(t)}${cabBox(t)}${mi}${ke}${reqTasks(t)}
+    ${prbInputs(t)}${riskBox(t)}${cabBox(t)}${mi}${ke}${reqTasks(t)}${saasBox(t)}
     <dl class="facts">${facts.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
     ${t.desc?`<div class="section"><span class="eyebrow">Details</span><p>${esc(t.desc)}</p></div>`:''}
     ${keSection(t)}${kbSection(t)}
@@ -203,7 +207,7 @@ function act(id,k){
   const setStatus=s=>{t.status=s;log(`Status changed to ${s}`);
     if(CLOSED[t.type].includes(s)&&!t.resolved)t.resolved=now;
     if(!t.assignee&&!['New','Submitted','Draft','Logged'].includes(s)){t.assignee=pick2(PEOPLE);if(t.group==='Service Desk L1'&&t.type==='INC')t.group=GROUP_OF[t.service]||t.group}};
-  if(k==='next'){if(t.type==='REQ'&&f[i+1]==='Fulfilled'&&t.tasks&&t.tasks.some(x=>x.status!=='Done')){toast('Complete all fulfilment tasks first');return}
+  if(k==='next'){if(gateNext(t,f[i+1])===false)return;if(t.type==='REQ'&&f[i+1]==='Fulfilled'&&t.tasks&&t.tasks.some(x=>x.status!=='Done')){toast('Complete all fulfilment tasks first');return}
     if(t.type==='PRB'){const nx=f[i+1];if(nx==='Root cause found'){const rs=$('#rcSel');t.rootCause=rs?rs.value:(t.rootCause||ROOT_CAUSES[0]);log(`Root cause identified: ${t.rootCause}`)}if(nx==='Known error'){const w=$('#waText');t.knownError=true;t.workaround=(w&&w.value.trim())||t.workaround||WORKAROUNDS[0];log(`Known error published. Workaround: ${t.workaround}`)}}
     if(t.type==='CHG'&&t.status==='Assessment')applyRisk(t,log);
     setStatus(f[i+1])}
@@ -220,6 +224,7 @@ function act(id,k){
   else if(k.startsWith('out:')){t.outcome=k.slice(4);log(`Implemented. Outcome: ${t.outcome}`);setStatus('Review')}
   else if(k==='raisePRB'){openDrawer(createForm('PRB',{title:'Recurring: '+t.title.toLowerCase(),service:t.service,priority:t.priority==='P1'?'P1':'P2',links:[t.id],from:t.id}));bindCreate();return}
   else if(k==='raiseCHG'){openDrawer(createForm('CHG',{title:'Permanent fix: '+t.title.replace(/^Recurring: /,''),service:t.service,changeType:t.major?'Emergency':'Normal',risk:'Medium',from:t.id}));bindCreate();return}
+  else if(k.startsWith('roll:')||k.startsWith('cr:')){if(saasAct(t,k,log,now)===false)return}
   else if(k.startsWith('task:')){const x=t.tasks&&t.tasks[+k.slice(5)];if(x&&x.status!=='Done'){x.status='Done';x.done=now;log(`Task completed: ${x.name} (${x.group})`);assetOnTask(t,x)}}
   else if(k.startsWith('swarm:')){const g=k.slice(6);t.swarm=t.swarm||[];if(t.swarm.includes(g)){t.swarm=t.swarm.filter(x=>x!==g);log(`${g} left the swarm`)}else{t.swarm.push(g);log(`${g} joined the swarm on the bridge`)}}
   else if(k==='reply'){const tx=($('#replyText')||{}).value;if(!tx||!tx.trim()){toast('Write the reply first');return}t.notes.push({t:now,who:me,text:tx.trim(),cust:true})}
@@ -232,6 +237,7 @@ function act(id,k){
   feedNotes(t,n0);maintFeed(t,s0);
   /* Ripple effects into other modules */
   if(k.startsWith('out:'))rip=rippleChange(t,now);
+  if(k==='out:Successful'){if(t.client)rip=clientChangeDone(t,now)||rip;if(t.agent)rip=aiChangeDone(t,now)||rip}
   if(t.type==='PRB'&&s0!==t.status&&t.status==='Resolved'){const n=rippleProblem(t,now);if(n)rip=`${t.id} resolved: ${n} linked incident${n>1?'s':''} resolved too`}
   if(t.type==='PRB'&&s0!=='Known error'&&t.status==='Known error'){t.keAt=now;rip=`${keId(t)} added to the known error database`;feed('KEDB',`${keId(t)} added: ${kbClean(t.title)}. Workaround: ${t.workaround}`,t.id)}
   save();render();openDetail(id);if(k!=='note')toast(rip||(k==='reply'?'Reply sent to caller':`${t.id} updated`));

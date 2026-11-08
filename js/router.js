@@ -8,14 +8,14 @@ function route(){
   if(!$('#drawer').hidden){$('#drawer').hidden=true;$('#scrim').hidden=true;openSave(null)}
   let h=(location.hash||'').replace('#','');
   if(h.startsWith('dashboard-')){ui.dash.tab=h.slice(10);h='dashboard'}
-  ui.view=['desk','walkthroughs','catalogue','problems','changes','knowledge','events','cmdb','improvement','processes','dashboard'].includes(h)?h:'desk';
+  ui.view=['desk','walkthroughs','catalogue','problems','changes','knowledge','events','cmdb','improvement','processes','dashboard','platform','ai'].includes(h)?h:'desk';
   document.querySelectorAll('#nav a').forEach(a=>{if(a.dataset.view===ui.view)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
   render();
   const m=$('#main');m.classList.remove('enter');void m.offsetWidth;m.classList.add('enter');
 }
 function render(){
   const m=$('#main');
-  const v={walkthroughs:viewWalkthroughs,problems:viewProblems,changes:viewChanges,improvement:viewImprovement,processes:viewProcesses,dashboard:viewDashboard,catalogue:viewCatalogue,knowledge:viewKnowledge,events:viewEvents,cmdb:viewCMDB}[ui.view]||viewDesk;
+  const v={walkthroughs:viewWalkthroughs,problems:viewProblems,changes:viewChanges,improvement:viewImprovement,processes:viewProcesses,dashboard:viewDashboard,catalogue:viewCatalogue,knowledge:viewKnowledge,events:viewEvents,cmdb:viewCMDB,platform:viewPlatform,ai:viewAI}[ui.view]||viewDesk;
   m.innerHTML=v();
   requestAnimationFrame(()=>AFTER_RENDER.forEach(f=>{try{f()}catch(e){console.error(e)}}));
 }

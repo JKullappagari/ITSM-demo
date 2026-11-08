@@ -12,10 +12,10 @@ const AFTER_RENDER=[];
 
 /* ---------- state ---------- */
 let DB=null,IDX=new Map();
-function reindex(){IDX=new Map(DB.items.concat(DB.ci,DB.kb,DB.events,DB.assets,DB.csi).map(t=>[t.id,t]))}
+function reindex(){IDX=new Map(DB.items.concat(DB.ci,DB.kb,DB.events,DB.assets,DB.csi,DB.clients||[],DB.agents||[]).map(t=>[t.id,t]))}
 function load(){
   const raw=store.get(KEY);
-  if(raw){try{const d=JSON.parse(raw);if(d&&Array.isArray(d.items)&&Array.isArray(d.ci)&&Array.isArray(d.kb)&&Array.isArray(d.events)&&Array.isArray(d.assets)&&Array.isArray(d.csi)){DB=d;reindex();return}}catch(e){}}
+  if(raw){try{const d=JSON.parse(raw);if(d&&Array.isArray(d.items)&&Array.isArray(d.ci)&&Array.isArray(d.kb)&&Array.isArray(d.events)&&Array.isArray(d.assets)&&Array.isArray(d.csi)){if(!d.clients||!d.agents)extendData(d,Date.now());DB=d;reindex();return}}catch(e){}}
   DB=generate(Date.now());reindex();
 }
 function save(){store.set(KEY,JSON.stringify(DB))}
