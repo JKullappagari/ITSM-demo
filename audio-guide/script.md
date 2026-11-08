@@ -2,19 +2,19 @@
 
 ## Welcome
 
-Welcome to this audio guide to the Meridian Service Desk. Meridian is a demonstration of I.T. service management, the way it should work in a real organisation. It shows how incidents, problems, changes, requests, releases, knowledge, configuration and improvement fit together, and how management reports come out of that everyday work.
+Welcome to this audio guide to the Meridian Service Desk. Meridian is a demonstration of I.T. service management, the way it should work in a real organisation. It shows how incidents, problems, changes, requests, releases, knowledge, configuration and improvement fit together, and how management reports come out of that everyday work. It also covers two situations many organisations face today: running software as a service for external clients, and governing AI agents.
 
-This guide takes about twenty minutes. You do not need the screen in front of you. The idea is that you listen first, so that when you open the tool later, nothing comes as a surprise and you know where to look.
+This guide takes about half an hour. You do not need the screen in front of you. The idea is that you listen first, so that when you open the tool later, nothing comes as a surprise and you know where to look.
 
-The guide has twelve parts. First, the layout of the screen. Then the Service Desk, the walkthroughs, the service catalogue, problems and the known error database, changes and releases, the knowledge base, event monitoring, the configuration database and assets, improvement, processes and reports. It finishes with how the modules affect each other, and some tips for your first visit.
+The guide has fourteen parts. First, the layout of the screen. Then the Service Desk, the walkthroughs, the service catalogue, problems and the known error database, changes and releases, the knowledge base, event monitoring, the configuration database and assets, the client platform, AI governance, and improvement, processes and reports. It finishes with how the modules affect each other, and some tips for your first visit.
 
 ## The layout, and how to get there
 
 The tool is a website. You will find it at j k u l l a p p a g a r i dot github dot i o, forward slash, I T S M dash demo. It runs entirely in your browser. There is no server and no login. The sample data is generated fresh, relative to today, so dates and timers always look current.
 
-Down the left side of the screen is the sidebar. From top to bottom it lists: Service Desk, Walkthroughs, Service catalogue, Problems and K E D B, Changes and releases, Knowledge base, Event monitoring, C M D B and assets, Improvement register, Processes, and Management reports.
+Down the left side of the screen is the sidebar. From top to bottom it lists: Service Desk, Walkthroughs, Service catalogue, Problems and K E D B, Changes and releases, Knowledge base, Event monitoring, C M D B and assets, Client platform, AI governance, Improvement register, Processes, and Management reports.
 
-Some sidebar entries carry small live counts. Service Desk shows how many priority one and priority two incidents are open. Changes shows how many are waiting for the change advisory board. Event monitoring shows open alerts. When a count goes up, the badge briefly pulses, so your eye is drawn to it.
+Some sidebar entries carry small live counts. Service Desk shows how many priority one and priority two incidents are open. Changes shows how many are waiting for the change advisory board. Event monitoring shows open alerts. Client platform shows clients held up by a failed upgrade test, and AI governance shows agents that need attention. When a count goes up, the badge briefly pulses, so your eye is drawn to it.
 
 At the bottom of the sidebar is a button called Reset demo data. Anything you do in the tool is saved in your own browser only. Nobody else sees it. Refreshing the page keeps your records, the record you had open, and any walkthrough you were part way through. When you want a clean start, press Reset demo data, then press it again to confirm.
 
@@ -24,9 +24,9 @@ Most records open in a panel that slides in from the right. We call this the dra
 
 ## The Service Desk
 
-The Service Desk is the main working screen. It is a queue of tickets: incidents, major incidents, problems, changes, service requests and releases, each with a reference number such as I N C, P R B, C H G, R E Q or R L S.
+The Service Desk is the main working screen. It is a queue of tickets: incidents, major incidents, problems, changes, service requests and releases, each with a reference number such as I N C, P R B, C H G, R E Q or R E L.
 
-You can filter the queue and log new records. When you log an incident, you choose the service, then the impact and urgency, each from one to four. The tool calculates the priority from those two, from P one, the most urgent, down to P four. This matrix is exactly how real service desks set priority.
+You can filter the queue and log new records. When you log an incident, you choose the service, then the impact and urgency, each from one to three. The tool calculates the priority from those two, from P one, the most urgent, down to P four. This matrix is exactly how real service desks set priority.
 
 Each open ticket has a live S L A countdown. S L A means service level agreement: the time the desk has promised to resolve the ticket. The countdown shows as a small progress bar that ticks every second. It is green while things are fine, turns amber when the ticket is at risk, and red when the target is breached. The activity log also announces when a ticket goes at risk and when it breaches.
 
@@ -38,7 +38,7 @@ For a major incident, the tool supports swarming. Instead of passing the ticket 
 
 ## Walkthroughs
 
-Walkthroughs are guided scenarios. They are the best way to learn the tool. There are seventeen of them, in four groups.
+Walkthroughs are guided scenarios. They are the best way to learn the tool. There are twenty-one of them, in six groups.
 
 Service desk: a major incident from alert to review; payment gateway down, handled by swarming; event triage; S L A rescue; an unhappy customer; and self-service.
 
@@ -47,6 +47,10 @@ Requests and knowledge: a new starter with approval and tasks; a knowledge artic
 Problem, change and release: problem to known error to fix; a normal change through the change advisory board; standard versus normal change; a standard change; a release with early life support; and a capacity warning.
 
 Management: the monthly service review; and logging, prioritising and delivering an improvement.
+
+Client platform: a quarterly platform upgrade across six clients; and a client change request, where you decide between a configuration change and a custom workflow.
+
+AI governance: approving a new AI agent, from proposal to live; and an AI agent that misbehaves, handled with the kill switch, a roll back and a fix through change.
 
 When you start one, a coach panel appears. It explains each step, highlights where to click with a ring on the screen, and tells you why the step matters. Once you do the step, it moves on by itself. If you get stuck, press Do it for me and it does the step for you while you watch.
 
@@ -114,6 +118,36 @@ While a change is being implemented on an item, that item shows a tag reading Ma
 
 The assets side covers the laptop register, where laptops move from In stock, to Allocated, to In use. It also covers hardware stock levels and software licence compliance: how many licences you own against how many are installed.
 
+## The client platform
+
+So far, everything has been about an I.T. department serving its own staff. The Client platform page shows a different situation: a company that runs software as a service for external clients.
+
+In the demo, Meridian runs a platform called Meridian Flow, for reconciliation and data automation. It has six client firms, all fictional, such as Harbourline Bank, Northgate Securities and Pinecrest Fund Services. Each client has a contract plan, either Standard, Premium or Enterprise, which sets its service levels. Each client runs a version of the platform, has its own production window, such as Saturday night, and has a configuration register listing its matching rules, reports and any custom workflows built just for it.
+
+The first scenario is the regular upgrade. Every quarter there is a new version, and every client has to take it. So one release becomes six small rollouts. For each client, the stages are: Notified, Test environment upgraded, Client testing, Signed off, and Production upgraded. The rules are strict. Production is upgraded only after the client signs off, and only in that client's own window.
+
+Client testing is where problems show up. Standard configuration is covered by Meridian's own regression tests, but custom workflows are not. In the demo, Pinecrest has a custom script that fails on the new version. Pinecrest cannot sign off until it is fixed, so you raise the fix as a client change, apply it, and then Pinecrest signs off.
+
+A client can also ask to defer. There is a version support policy: clients must stay within two versions of the current release. In the demo, Solent Pensions Trust is already too far behind, so if it defers again, it stays out of support, and the tool records that the client accepted that risk in writing.
+
+The second scenario is client change requests. Triage decides between two paths. A configuration change uses a setting the platform already supports, such as a new matching rule or a report schedule. It is pre-approved, included in the subscription, and scheduled straight away. A custom workflow change is new behaviour built for one client. It is a normal change with extra client steps before it reaches CAB: estimate the effort and send a quote, the client accepts the quote, build and test it in the client's test environment, and the client signs off. The tool will not let it go to CAB until all four are done.
+
+When a client change is implemented, it is added to that client's configuration register. Custom workflows are marked to be re-tested at every upgrade. That is how the next quarterly upgrade knows what to check.
+
+## AI governance
+
+The AI governance page answers a question many organisations now face: if we build AI agents, how do we manage and govern them? The answer in this tool is that there is no new process. An AI agent is treated like any other configuration item, and the existing practices apply to it.
+
+The page starts with the AI agent register. For every agent, it records the business owner, what the agent does, how much it can do on its own, its risk tier, its model, and the version in use. There are three levels of autonomy: suggest only, where a person decides; act with human approval, where a person approves each action; and act within limits, where the agent acts on its own inside hard limits. The register also shows how each live agent is doing: the quality of its work from sampled checks, how often people override it, and how often its guardrails had to block it.
+
+Agents follow a lifecycle: Proposed, Risk assessed, Approved, Live, and Retired. When an agent is proposed, a short questionnaire sets its risk tier. For example: can it move money, do its decisions affect people directly, does it act without a person approving, does it read personal data, and do clients or the public talk to it. The answers give a tier of minimal, limited or high. Some uses are prohibited outright. The tiers follow the shape of the European Union's A I Act, the U S N I S T framework for A I risk, and the I S O standard for A I management, simplified for a demonstration.
+
+Before approval, ten governance controls must be in place. These include a named owner, a data protection assessment, defined human oversight, action limits, a tested kill switch, monitoring, change control for the model and prompt, telling people when they are dealing with A I, an evaluation test set, and a review date. Once the governance board approves, going live is itself a change, with a change record approved at CAB.
+
+Two ideas matter most. First, every version of an agent, every new prompt or model, should be deployed under a change record, and the register flags any version that was not. Second, every agent has a kill switch. If it misbehaves, you suspend it at once, and the work falls back to people.
+
+In the demo, the password reset agent shows both. Its latest version was deployed without a change record, and it lost a safety check. The guardrails block it from resetting administrator accounts, and a critical alert appears in event monitoring. You suspend it, raise an incident, roll it back to the last approved version, resume it, and put the improved version through change properly.
+
 ## Improvement, processes and reports
 
 The improvement register supports continual improvement. Each idea is rated for value against effort, so you can see the quick wins. Improvements move through the stages Idea, Assessed, Approved, In progress and Done, ending with a measured benefit. They can link back to the post-incident review that prompted them.
@@ -140,7 +174,11 @@ If a change moves to Implementing, its configuration item shows Maintenance wind
 
 If you raise an incident from an alert, the form is filled in from the alert.
 
-And if a new laptop is requested and approved, the fulfilment task allocates a real laptop from stock, and the handover marks it as in use.
+If a new laptop is requested and approved, the fulfilment task allocates a real laptop from stock, and the handover marks it as in use.
+
+If a client's custom workflow fails during upgrade testing, that client cannot sign off until a client change fixes it. And when any client change is implemented, it is added to the client's configuration register for the next upgrade.
+
+Finally, if an AI agent's guardrails block an action, a critical alert appears in event monitoring with the agent as the configuration item. A successful change on an agent records a new version under that change, and a suspended agent can only be resumed on a version that went through change.
 
 ## Tips for your first visit
 
@@ -151,6 +189,8 @@ Start with the walkthrough called Major incident from alert to review. It touche
 Next, try Problem to known error to fix, and then Normal change through CAB. Together they show the full cycle: from an incident, to the root cause, to a permanent fix that resolves the problem.
 
 Then try Laptop lifecycle from request to desk, to see the catalogue, approvals and the asset register working together.
+
+If you work with external clients, try Quarterly platform upgrade. And if your organisation is building AI agents, try An AI agent misbehaves. It shows in about six minutes why a kill switch and change control matter.
 
 After that, explore on your own. Keep an eye on the activity log at the bottom, and on the sidebar badges, to see the ripple effects as you work. Open Management reports at the end to see how your actions appear in the numbers.
 

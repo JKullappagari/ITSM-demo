@@ -2,7 +2,7 @@
 
 **Live demo: https://jkullappagari.github.io/ITSM-demo/**
 
-**Audio guide: https://jkullappagari.github.io/ITSM-demo/audio.html**: a 22-minute spoken tour of every screen, to listen to before you open the tool. The page has a chapter list and a speed control; the MP3 on its own is at https://jkullappagari.github.io/ITSM-demo/meridian-audio-guide.mp3. The chapter times are in [audio-guide/chapters.md](audio-guide/chapters.md) and the narration text is in [audio-guide/script.md](audio-guide/script.md).
+**Audio guide: https://jkullappagari.github.io/ITSM-demo/audio.html**: a 31-minute spoken tour of every screen, to listen to before you open the tool. The page has a chapter list and a speed control; the MP3 on its own is at https://jkullappagari.github.io/ITSM-demo/meridian-audio-guide.mp3. The chapter times are in [audio-guide/chapters.md](audio-guide/chapters.md) and the narration text is in [audio-guide/script.md](audio-guide/script.md).
 
 An interactive demonstration of IT service management (ITSM) as it should work. It shows how incidents, problems, changes, requests, releases, knowledge, configuration and improvement fit together, how management reports come out of that work, and lets anyone practise real scenarios through guided walkthroughs.
 
